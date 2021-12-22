@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/index.js",
   "scripts": {
+    "start": "node src",
     "test": "mocha tests/*.test.js --fail-zero --exit",
     "lint": "eslint src/*/**.js"
   },
