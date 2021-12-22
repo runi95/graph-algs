@@ -1,5 +1,5 @@
 // const BinaryHeap = require('./binaryHeap');
-const PriorityQueue = require('./priorityQueue');
+const PriorityQueue = require('../priorityQueue');
 const Node = require('./node');
 
 // Hardcoded for simplicity
