@@ -1,4 +1,3 @@
-// const BinaryHeap = require('./binaryHeap');
 const PriorityQueue = require('../priorityQueue');
 const Node = require('./node');
 
