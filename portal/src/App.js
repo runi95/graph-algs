@@ -14,10 +14,25 @@ const initialGoal = {
   y: 1,
 };
 
+const algorithms = [
+  {
+    name: 'A*',
+    value: 'astar',
+  },
+  {
+    name: 'Jump point',
+    value: 'jps',
+  },
+];
+
 function App() {
-  const debouncedSearch = useCallback(debounce(() => search(), 500), []);
+  const debouncedSearch = useCallback(
+      debounce((algorithm) => search(algorithm), 500),
+      [],
+  );
   const [pathLength, setPathLength] = useState('');
   const [visitedNodes, setVisitedNodes] = useState('');
+  const [algorithm, setAlgorithm] = useState(algorithms[0].value);
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
@@ -37,11 +52,12 @@ function App() {
   });
 
   useEffect(() => {
-    search();
-  }, []);
+    search(algorithm);
+  }, [algorithm]);
 
-  function search() {
-    const data = JSON.stringify(graph);
+  function search(algorithm) {
+    console.log(algorithm);
+    const data = JSON.stringify({...graph, algorithm});
     fetch('http://localhost:8080/api/run', {
       method: 'POST',
       headers: {
@@ -85,7 +101,7 @@ function App() {
     newMatrix[x][y] = newNodeState;
     setGraph({...graph, matrix: newMatrix});
 
-    debouncedSearch();
+    debouncedSearch(algorithm);
   };
 
   return (
@@ -93,6 +109,17 @@ function App() {
       <Grid matrix={graph.matrix} updateGraph={updateGraph} />
       <div className="ControlPanel">
         <h1>Information</h1>
+        <select
+          value={algorithm}
+          onChange={(e) => {
+            console.log(`SETTING TO: ${e.target.value}`);
+            setAlgorithm(e.target.value);
+          }}
+        >
+          {algorithms.map((alg) =>
+            <option key={alg.value} value={alg.value}>{alg.name}</option>,
+          )}
+        </select>
         <p>Path Length: {pathLength}</p>
         <p>Visited nodes: {visitedNodes}</p>
       </div>
