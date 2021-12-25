@@ -27,7 +27,7 @@ module.exports = class Node {
    * @return {Number}
    */
   valueOf() {
-    return this.f;
+    return this.h;
   }
 
   /**
