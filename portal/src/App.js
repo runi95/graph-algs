@@ -17,6 +17,7 @@ const initialGoal = {
 function App() {
   const debouncedSearch = useCallback(debounce(() => search(), 500), []);
   const [pathLength, setPathLength] = useState('');
+  const [visitedNodes, setVisitedNodes] = useState('');
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
@@ -65,6 +66,7 @@ function App() {
           const {solution, visited} = data;
 
           setPathLength(solution.length.toString());
+          setVisitedNodes((solution.length + visited.length).toString());
 
           visited.forEach(({x, y}) => {
             newMatrix[x][y] = 'Visited';
@@ -92,6 +94,7 @@ function App() {
       <div className="ControlPanel">
         <h1>Information</h1>
         <p>Path Length: {pathLength}</p>
+        <p>Visited nodes: {visitedNodes}</p>
       </div>
     </div>
   );
