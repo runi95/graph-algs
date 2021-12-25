@@ -1,8 +1,6 @@
 const PriorityQueue = require('../priorityQueue');
 const Node = require('./node');
-
-// Hardcoded for simplicity
-const D = 1;
+const heuristics = require('../heuristics');
 
 module.exports = class AStar {
   #graph;
@@ -13,37 +11,6 @@ module.exports = class AStar {
    */
   constructor(graph) {
     this.#graph = graph.map((_, x) => graph[x].map((_, y) => new Node(x, y, graph[x][y] === 'Wall')));
-  }
-
-  /**
-   * TODO: Write JSDoc
-   *
-   * @param {Number} nodeX
-   * @param {Number} nodeY
-   * @param {Number} destinationX
-   * @param {Number} destinationY
-   * @return {Number} The euclidean distance between node and destination
-   */
-  #euclideanDistance(nodeX, nodeY, destinationX, destinationY) {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-
-    return D * Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-  }
-
-  /**
-   * TODO: Write JSDoc
-   *
-   * @param {Number} nodeX
-   * @param {Number} nodeY
-   * @param {Number} destinationX
-   * @param {Number} destinationY
-   * @return {Number} The manhattan distance between node and destination
-   */
-  #manhattanDistance(nodeX, nodeY, destinationX, destinationY) {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-    return D * (dx + dy);
   }
 
   /**
@@ -119,19 +86,19 @@ module.exports = class AStar {
       }
     } else {
       if (this.#isPathable(x + 1, y)) {
-      ret.push(this.#graph[x + 1][y]);
-    }
+        ret.push(this.#graph[x + 1][y]);
+      }
 
       if (this.#isPathable(x - 1, y)) {
-      ret.push(this.#graph[x - 1][y]);
-    }
+        ret.push(this.#graph[x - 1][y]);
+      }
 
       if (this.#isPathable(x, y + 1)) {
-      ret.push(this.#graph[x][y + 1]);
-    }
+        ret.push(this.#graph[x][y + 1]);
+      }
 
       if (this.#isPathable(x, y - 1)) {
-      ret.push(this.#graph[x][y - 1]);
+        ret.push(this.#graph[x][y - 1]);
       }
     }
 
@@ -149,7 +116,7 @@ module.exports = class AStar {
    * @return {*}
    */
   search(sourceX, sourceY, destinationX, destinationY, heuristic) {
-    heuristic = heuristic || this.#euclideanDistance;
+    heuristic = heuristic || heuristics.euclideanDistance;
 
     const openHeap = new PriorityQueue();
     openHeap.add(this.#graph[sourceX][sourceY]);

@@ -1,8 +1,6 @@
 const PriorityQueue = require('../priorityQueue');
 const Node = require('../AStar/node');
-
-// Hardcoded for simplicity
-const D = 1;
+const heuristics = require('../heuristics');
 
 module.exports = class JPS {
   #graph;
@@ -13,38 +11,6 @@ module.exports = class JPS {
    */
   constructor(graph) {
     this.#graph = graph.map((_, x) => graph[x].map((_, y) => new Node(x, y, graph[x][y] === 'Wall')));
-  }
-
-  /**
-   * TODO: Write JSDoc
-   *
-   * @param {Number} nodeX
-   * @param {Number} nodeY
-   * @param {Number} destinationX
-   * @param {Number} destinationY
-   * @return {Number} The octile distance between node and destination
-   */
-  #octileDistance(nodeX, nodeY, destinationX, destinationY) {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-    const f = Math.SQRT2 - 1;
-
-    return (dx < dy) ? f * dx + dy : f * dy + dx;
-  }
-
-  /**
-   * TODO: Write JSDoc
-   *
-   * @param {Number} nodeX
-   * @param {Number} nodeY
-   * @param {Number} destinationX
-   * @param {Number} destinationY
-   * @return {Number} The manhattan distance between node and destination
-   */
-  #manhattanDistance(nodeX, nodeY, destinationX, destinationY) {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-    return D * (dx + dy);
   }
 
   /**
@@ -212,7 +178,7 @@ module.exports = class JPS {
    * @return {*}
    */
   search(sourceX, sourceY, destinationX, destinationY, heuristic) {
-    heuristic = heuristic || this.#manhattanDistance;
+    heuristic = heuristic || heuristics.manhattanDistance;
 
     const openHeap = new PriorityQueue();
     openHeap.add(this.#graph[sourceX][sourceY]);
@@ -287,7 +253,7 @@ module.exports = class JPS {
             continue;
           }
 
-          const d = this.#octileDistance(
+          const d = heuristics.octileDistance(
               neighbor.x,
               neighbor.y,
               destinationX,
