@@ -55,23 +55,58 @@ module.exports = class JPS {
    */
   #neighbors(node) {
     const ret = [];
+    const parent = node.parent;
     const x = node.x;
     const y = node.y;
 
-    if (this.#graph[x + 1] && this.#graph[x + 1][y]) {
-      ret.push(this.#graph[x + 1][y]);
-    }
+    if (parent) {
+      const px = parent.x;
+      const py = parent.y;
 
-    if (this.#graph[x - 1] && this.#graph[x - 1][y]) {
-      ret.push(this.#graph[x - 1][y]);
-    }
+      const dx = (x - px) / Math.max(Math.abs(x - px), 1);
+      const dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
-    if (this.#graph[x] && this.#graph[x][y + 1]) {
-      ret.push(this.#graph[x][y + 1]);
-    }
+      if (dx !== 0) {
+        if (this.#isPathable(x, y - 1)) {
+          ret.push(this.#graph[x][y - 1]);
+        }
 
-    if (this.#graph[x] && this.#graph[x][y - 1]) {
-      ret.push(this.#graph[x][y - 1]);
+        if (this.#isPathable(x, y + 1)) {
+          ret.push(this.#graph[x][y + 1]);
+        }
+
+        if (this.#isPathable(x + dx, y)) {
+          ret.push(this.#graph[x + dx][y]);
+        }
+      } else if (dy !== 0) {
+        if (this.#isPathable(x - 1, y)) {
+          ret.push(this.#graph[x - 1][y]);
+        }
+
+        if (this.#isPathable(x + 1, y)) {
+          ret.push(this.#graph[x + 1][y]);
+        }
+
+        if (this.#isPathable(x, y + dy)) {
+          ret.push(this.#graph[x][y + dy]);
+        }
+      }
+    } else {
+      if (this.#isPathable(x + 1, y)) {
+        ret.push(this.#graph[x + 1][y]);
+      }
+
+      if (this.#isPathable(x - 1, y)) {
+        ret.push(this.#graph[x - 1][y]);
+      }
+
+      if (this.#isPathable(x, y + 1)) {
+        ret.push(this.#graph[x][y + 1]);
+      }
+
+      if (this.#isPathable(x, y - 1)) {
+        ret.push(this.#graph[x][y - 1]);
+      }
     }
 
     return ret;
@@ -84,7 +119,7 @@ module.exports = class JPS {
    * @param {*} y
    * @return {Boolean}
    */
-  #isValidJump(x, y) {
+  #isPathable(x, y) {
     if (x < 0) {
       return false;
     }
@@ -137,19 +172,19 @@ module.exports = class JPS {
 
     if (dx !== 0) {
       if (
-        (this.#isValidJump(x, y - 1) &&
-            !this.#isValidJump(x - dx, y - 1)) ||
-        (this.#isValidJump(x, y + 1) &&
-            !this.#isValidJump(x - dx, y + 1))
+        (this.#isPathable(x, y - 1) &&
+            !this.#isPathable(x - dx, y - 1)) ||
+        (this.#isPathable(x, y + 1) &&
+            !this.#isPathable(x - dx, y + 1))
       ) {
         return [x, y];
       }
     } else if (dy !== 0) {
       if (
-        (this.#isValidJump(x - 1, y) &&
-            !this.#isValidJump(x - 1, y - dy)) ||
-        (this.#isValidJump(x + 1, y) &&
-            !this.#isValidJump(x + 1, y - dy))
+        (this.#isPathable(x - 1, y) &&
+            !this.#isPathable(x - 1, y - dy)) ||
+        (this.#isPathable(x + 1, y) &&
+            !this.#isPathable(x + 1, y - dy))
       ) {
         return [x, y];
       }
