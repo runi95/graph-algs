@@ -22,7 +22,7 @@ module.exports = class JPS {
    * @param {Number} nodeY
    * @param {Number} destinationX
    * @param {Number} destinationY
-   * @return {Number} The manhattan distance between node and destination
+   * @return {Number} The octile distance between node and destination
    */
   #octileDistance(nodeX, nodeY, destinationX, destinationY) {
     const dx = Math.abs(nodeX - destinationX);
