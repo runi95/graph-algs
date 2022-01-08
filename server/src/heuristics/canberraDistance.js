@@ -8,7 +8,7 @@ module.exports = class CanberraDistance {
    * @param {Number} nodeY
    * @param {Number} destinationX
    * @param {Number} destinationY
-   * @return {Number} The manhattan distance between node and destination
+   * @return {Number} The canberra distance between node and destination
    */
   calculate(nodeX, nodeY, destinationX, destinationY) {
     const dx = Math.abs(nodeX - destinationX) /
