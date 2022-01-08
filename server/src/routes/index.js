@@ -6,6 +6,7 @@ const OctileDistance = require('../heuristics/octileDistance');
 const EuclideanDistance = require('../heuristics/euclideanDistance');
 const ManhattanDistance = require('../heuristics/manhattanDistance');
 const CanberraDistance = require('../heuristics/canberraDistance');
+const ChebyshevDistance = require('../heuristics/chebyshevDistance');
 
 // eslint-disable-next-line new-cap
 const router = Router();
@@ -16,6 +17,7 @@ const heuristics = [
   CanberraDistance,
   EuclideanDistance,
   OctileDistance,
+  ChebyshevDistance,
 ];
 
 router.post('/run', async (req, res) => {
