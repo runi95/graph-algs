@@ -55,7 +55,6 @@ function App() {
   }, [algorithm]);
 
   function search(algorithm) {
-    console.log(algorithm);
     const data = JSON.stringify({...graph, algorithm});
     fetch('http://localhost:8080/api/run', {
       method: 'POST',
@@ -111,7 +110,6 @@ function App() {
         <select
           value={algorithm}
           onChange={(e) => {
-            console.log(`SETTING TO: ${e.target.value}`);
             setAlgorithm(e.target.value);
           }}
         >
