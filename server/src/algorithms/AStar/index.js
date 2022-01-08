@@ -1,6 +1,5 @@
 const PriorityQueue = require('../priorityQueue');
 const Node = require('./node');
-const heuristics = require('../heuristics');
 
 module.exports = class AStar {
   static label = 'A*';
@@ -118,8 +117,6 @@ module.exports = class AStar {
    * @return {*}
    */
   search(sourceX, sourceY, destinationX, destinationY, heuristic) {
-    heuristic = heuristic || heuristics.euclideanDistance;
-
     const openHeap = new PriorityQueue();
     openHeap.add(this.#graph[sourceX][sourceY]);
 
@@ -157,7 +154,7 @@ module.exports = class AStar {
         if (!beenVisited || gScore < neighbor.g) {
           neighbor.visited = true;
           neighbor.parent = currentNode;
-          neighbor.h = neighbor.h || heuristic(
+          neighbor.h = neighbor.h || heuristic.calculate(
               neighbor.x,
               neighbor.y,
               destinationX,

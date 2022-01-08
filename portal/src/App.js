@@ -17,13 +17,12 @@ const initialGoal = {
 
 function App() {
   const debouncedSearch = useCallback(
-      debounce((algorithm) => search(algorithm), 500),
+      debounce((options) => search(options), 500),
       [],
   );
   const [pathLength, setPathLength] = useState('');
   const [visitedNodes, setVisitedNodes] = useState('');
-  const [algorithm, setAlgorithm] = useState(undefined);
-  const [algorithms, setAlgorithms] = useState([]);
+  const [options, setOptions] = useState(null);
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
@@ -43,16 +42,15 @@ function App() {
   });
 
   useEffect(() => {
-    if (algorithms.length === 0) {
-      fetch('http://localhost:8080/api/algorithms')
+    if (options === null) {
+      fetch('http://localhost:8080/api/options')
           .then((response) => response.json())
           .then((data) => {
-            setAlgorithms(data);
-            setAlgorithm(data[0]);
+            setOptions(data);
           });
     } else {
-      if (algorithm) {
-        search(algorithm.value);
+      if (options.algorithm && options.heuristic) {
+        search(options);
       } else {
         const newMatrix = [...graph.matrix];
 
@@ -69,10 +67,15 @@ function App() {
         setGraph({...graph, matrix: newMatrix});
       }
     }
-  }, [algorithm]);
+  }, [options]);
 
-  function search(algorithm) {
-    const data = JSON.stringify({...graph, algorithm});
+  function search(options) {
+    const data = JSON.stringify({
+      ...graph,
+      algorithm: options.algorithm.value,
+      heuristic: options.heuristic.value,
+    });
+
     fetch('http://localhost:8080/api/run', {
       method: 'POST',
       headers: {
@@ -116,7 +119,7 @@ function App() {
     newMatrix[x][y] = newNodeState;
     setGraph({...graph, matrix: newMatrix});
 
-    debouncedSearch(algorithm);
+    debouncedSearch(options);
   };
 
   return (
@@ -130,7 +133,7 @@ function App() {
         <div style={{paddingLeft: 16, paddingRight: 16}}>
           <Select
             isClearable={true}
-            options={algorithms}
+            options={options?.algorithms}
             styles={{
               option: (provided, _state) => ({
                 ...provided,
@@ -138,9 +141,26 @@ function App() {
               }),
               control: (provided) => ({...provided, margin: 6}),
             }}
-            value={algorithm}
+            value={options?.algorithm}
             onChange={(e) => {
-              setAlgorithm(e);
+              setOptions({...options, algorithm: e});
+            }}
+          />
+        </div>
+        <div style={{paddingLeft: 16, paddingRight: 16}}>
+          <Select
+            isClearable={true}
+            options={options?.heuristics}
+            styles={{
+              option: (provided, _state) => ({
+                ...provided,
+                color: '#333',
+              }),
+              control: (provided) => ({...provided, margin: 6}),
+            }}
+            value={options?.heuristic}
+            onChange={(e) => {
+              setOptions({...options, heuristic: e});
             }}
           />
         </div>

@@ -1,6 +1,8 @@
 const PriorityQueue = require('../priorityQueue');
 const Node = require('../AStar/node');
-const heuristics = require('../heuristics');
+const OctileDistance = require('../../heuristics/octileDistance');
+
+const octileDistance = new OctileDistance();
 
 module.exports = class JPS {
   static label = 'Jump point';
@@ -180,8 +182,6 @@ module.exports = class JPS {
    * @return {*}
    */
   search(sourceX, sourceY, destinationX, destinationY, heuristic) {
-    heuristic = heuristic || heuristics.manhattanDistance;
-
     const openHeap = new PriorityQueue();
     openHeap.add(this.#graph[sourceX][sourceY]);
 
@@ -255,7 +255,7 @@ module.exports = class JPS {
             continue;
           }
 
-          const d = heuristics.octileDistance(
+          const d = octileDistance.calculate(
               neighbor.x,
               neighbor.y,
               destinationX,
@@ -266,7 +266,7 @@ module.exports = class JPS {
           if (!beenVisited || gScore < jumpNode.g) {
             jumpNode.visited = true;
             jumpNode.parent = currentNode;
-            jumpNode.h = neighbor.h || heuristic(
+            jumpNode.h = neighbor.h || heuristic.calculate(
                 neighbor.x,
                 neighbor.y,
                 destinationX,
