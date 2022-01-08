@@ -1,6 +1,7 @@
 const {Router} = require('express');
 const AStar = require('../algorithms/aStar');
 const JPS = require('../algorithms/JPS');
+const Dijkstra = require('../algorithms/Dijkstra');
 
 // eslint-disable-next-line new-cap
 const router = Router();
@@ -15,6 +16,9 @@ router.post('/run', async (req, res) => {
       break;
     case 'jps':
       alg = new JPS(matrix);
+      break;
+    case 'dijkstra':
+      alg = new Dijkstra(matrix);
       break;
     default:
       return res.status(400).send({error: `Invalid algorithm '${algorithm}'`});

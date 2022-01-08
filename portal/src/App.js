@@ -23,6 +23,10 @@ const algorithms = [
     name: 'Jump point',
     value: 'jps',
   },
+  {
+    name: 'Dijkstra',
+    value: 'dijkstra',
+  },
 ];
 
 function App() {
