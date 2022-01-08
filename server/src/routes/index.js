@@ -5,12 +5,18 @@ const Dijkstra = require('../algorithms/Dijkstra');
 const OctileDistance = require('../heuristics/octileDistance');
 const EuclideanDistance = require('../heuristics/euclideanDistance');
 const ManhattanDistance = require('../heuristics/manhattanDistance');
+const CanberraDistance = require('../heuristics/canberraDistance');
 
 // eslint-disable-next-line new-cap
 const router = Router();
 
 const algorithms = [AStar, JPS, Dijkstra];
-const heuristics = [ManhattanDistance, EuclideanDistance, OctileDistance];
+const heuristics = [
+  ManhattanDistance,
+  CanberraDistance,
+  EuclideanDistance,
+  OctileDistance,
+];
 
 router.post('/run', async (req, res) => {
   const {matrix, start, goal, algorithm, heuristic} = req.body;
