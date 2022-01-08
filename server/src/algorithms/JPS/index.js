@@ -3,6 +3,8 @@ const Node = require('../AStar/node');
 const heuristics = require('../heuristics');
 
 module.exports = class JPS {
+  static label = 'Jump point';
+
   #graph;
   /**
    * TODO: Write JSDoc

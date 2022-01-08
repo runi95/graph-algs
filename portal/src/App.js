@@ -1,4 +1,5 @@
 import React, {useEffect, useState, useCallback} from 'react';
+import Select from 'react-select';
 import debounce from 'lodash.debounce';
 import Grid from './Grid';
 import './App.css';
@@ -47,10 +48,26 @@ function App() {
           .then((response) => response.json())
           .then((data) => {
             setAlgorithms(data);
-            setAlgorithm(data[0].value);
+            setAlgorithm(data[0]);
           });
     } else {
-      search(algorithm);
+      if (algorithm) {
+        search(algorithm.value);
+      } else {
+        const newMatrix = [...graph.matrix];
+
+        // Reset visited and solution states
+        for (let x = 0; x < newMatrix.length; x++) {
+          for (let y = 0; y < newMatrix[x].length; y++) {
+            const tileState = newMatrix[x][y];
+            if (tileState === 'Visited' || tileState === 'Solution') {
+              newMatrix[x][y] = '';
+            }
+          }
+        }
+
+        setGraph({...graph, matrix: newMatrix});
+      }
     }
   }, [algorithm]);
 
@@ -107,18 +124,26 @@ function App() {
       <Grid matrix={graph.matrix} updateGraph={updateGraph} />
       <div className="ControlPanel">
         <h1>Information</h1>
-        <select
-          value={algorithm}
-          onChange={(e) => {
-            setAlgorithm(e.target.value);
-          }}
-        >
-          {algorithms.map((alg) =>
-            <option key={alg.value} value={alg.value}>{alg.name}</option>,
-          )}
-        </select>
         <p>Path Length: {pathLength}</p>
         <p>Visited nodes: {visitedNodes}</p>
+        <h1>Options</h1>
+        <div style={{paddingLeft: 16, paddingRight: 16}}>
+          <Select
+            isClearable={true}
+            options={algorithms}
+            styles={{
+              option: (provided, _state) => ({
+                ...provided,
+                color: '#333',
+              }),
+              control: (provided) => ({...provided, margin: 6}),
+            }}
+            value={algorithm}
+            onChange={(e) => {
+              setAlgorithm(e);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

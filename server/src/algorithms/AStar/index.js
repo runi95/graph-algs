@@ -3,6 +3,8 @@ const Node = require('./node');
 const heuristics = require('../heuristics');
 
 module.exports = class AStar {
+  static label = 'A*';
+
   #graph;
   /**
    * TODO: Write JSDoc
