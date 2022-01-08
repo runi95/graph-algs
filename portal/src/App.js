@@ -14,21 +14,6 @@ const initialGoal = {
   y: 1,
 };
 
-const algorithms = [
-  {
-    name: 'A*',
-    value: 'astar',
-  },
-  {
-    name: 'Jump point',
-    value: 'jps',
-  },
-  {
-    name: 'Dijkstra',
-    value: 'dijkstra',
-  },
-];
-
 function App() {
   const debouncedSearch = useCallback(
       debounce((algorithm) => search(algorithm), 500),
@@ -36,7 +21,8 @@ function App() {
   );
   const [pathLength, setPathLength] = useState('');
   const [visitedNodes, setVisitedNodes] = useState('');
-  const [algorithm, setAlgorithm] = useState(algorithms[0].value);
+  const [algorithm, setAlgorithm] = useState(undefined);
+  const [algorithms, setAlgorithms] = useState([]);
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
@@ -56,7 +42,16 @@ function App() {
   });
 
   useEffect(() => {
-    search(algorithm);
+    if (algorithms.length === 0) {
+      fetch('http://localhost:8080/api/algorithms')
+          .then((response) => response.json())
+          .then((data) => {
+            setAlgorithms(data);
+            setAlgorithm(data[0].value);
+          });
+    } else {
+      search(algorithm);
+    }
   }, [algorithm]);
 
   function search(algorithm) {
