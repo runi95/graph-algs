@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import Select from 'react-select';
 import debounce from 'lodash.debounce';
 import Grid from './Grid';
+import RadioButton from './RadioButton';
 import './App.css';
 
 const gridHeight = 20;
@@ -123,47 +123,35 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className='App'>
       <Grid matrix={graph.matrix} updateGraph={updateGraph} />
-      <div className="ControlPanel">
+      <div className='ControlPanel'>
         <h1>Information</h1>
         <p>Path Length: {pathLength}</p>
         <p>Visited nodes: {visitedNodes}</p>
         <h1>Options</h1>
-        <div style={{paddingLeft: 16, paddingRight: 16}}>
-          <Select
-            isClearable={true}
-            options={options?.algorithms}
-            styles={{
-              option: (provided, _state) => ({
-                ...provided,
-                color: '#333',
-              }),
-              control: (provided) => ({...provided, margin: 6}),
-            }}
-            value={options?.algorithm}
-            onChange={(e) => {
-              setOptions({...options, algorithm: e});
-            }}
-          />
-        </div>
-        <div style={{paddingLeft: 16, paddingRight: 16}}>
-          <Select
-            isClearable={true}
-            options={options?.heuristics}
-            styles={{
-              option: (provided, _state) => ({
-                ...provided,
-                color: '#333',
-              }),
-              control: (provided) => ({...provided, margin: 6}),
-            }}
-            value={options?.heuristic}
-            onChange={(e) => {
-              setOptions({...options, heuristic: e});
-            }}
-          />
-        </div>
+        {
+          options ?
+            <div>
+              <p>Algorithm:</p>
+              {options.algorithms.map((algorithm) =>
+                <RadioButton
+                  key={algorithm.value}
+                  label={algorithm.label}
+                  checked={algorithm.value === options.algorithm.value}
+                  onChange={() => setOptions({...options, algorithm})}
+                />)}
+              <p>Heuristic:</p>
+              {options.heuristics.map((heuristic) =>
+                <RadioButton
+                  key={heuristic.value}
+                  label={heuristic.label}
+                  checked={heuristic.value === options.heuristic.value}
+                  onChange={() => setOptions({...options, heuristic})}
+                />)}
+            </div> :
+          undefined
+        }
       </div>
     </div>
   );
