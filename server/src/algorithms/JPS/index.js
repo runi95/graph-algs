@@ -6,6 +6,7 @@ const octileDistance = new OctileDistance();
 
 module.exports = class JPS {
   static label = 'Jump point';
+  static usesHeuristics = true;
 
   #graph;
   /**

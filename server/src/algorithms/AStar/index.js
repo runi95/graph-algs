@@ -3,6 +3,7 @@ const Node = require('./node');
 
 module.exports = class AStar {
   static label = 'A*';
+  static usesHeuristics = true;
 
   #graph;
   /**

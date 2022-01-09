@@ -145,6 +145,7 @@ function App() {
               {options.heuristics.map((heuristic) =>
                 <RadioButton
                   key={heuristic.value}
+                  disabled={options.algorithm?.usesHeuristics !== true}
                   label={heuristic.label}
                   checked={heuristic.value === options.heuristic.value}
                   onChange={() => setOptions({...options, heuristic})}

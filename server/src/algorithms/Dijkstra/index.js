@@ -3,6 +3,7 @@ const Node = require('../AStar/node');
 
 module.exports = class Dijkstra {
   static label = 'Dijkstra';
+  static usesHeuristics = false;
 
   #graph;
   /**

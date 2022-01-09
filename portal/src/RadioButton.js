@@ -5,7 +5,7 @@ import './RadioButton.css';
 function RadioButton(props) {
   return (
     <div>
-      <input id={props.label} type="radio" checked={props.checked} onChange={props.onChange} />
+      <input id={props.label} type="radio" checked={props.checked} disabled={props.disabled} onChange={props.onChange} />
       <label htmlFor={props.label}>{props.label}</label>
     </div>
   );
@@ -13,6 +13,7 @@ function RadioButton(props) {
 
 RadioButton.propTypes = {
   checked: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
   label: PropTypes.string.isRequired,
   onChange: PropTypes.func,
 };

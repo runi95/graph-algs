@@ -47,7 +47,11 @@ router.post('/run', async (req, res) => {
 router.get('/options', async (_req, res) => {
   const mappedAlgorithms = algorithms.map(
       (algorithm) =>
-        ({label: algorithm.label, value: algorithm.name.toLowerCase()}));
+        ({
+          label: algorithm.label,
+          value: algorithm.name.toLowerCase(),
+          usesHeuristics: algorithm.usesHeuristics,
+        }));
 
   const mappedHeuristics = heuristics.map(
       (heuristic) =>
