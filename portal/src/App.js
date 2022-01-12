@@ -114,17 +114,20 @@ function App() {
         });
   }
 
-  const updateGraph = (x, y, newNodeState) => {
+  const updateNode = (x, y, newNodeState) => {
     const newMatrix = [...graph.matrix];
     newMatrix[x][y] = newNodeState;
-    setGraph({...graph, matrix: newMatrix});
+    updateGraph(newMatrix);
+  };
 
+  const updateGraph = (newMatrix) => {
+    setGraph({...graph, matrix: newMatrix});
     debouncedSearch(options);
   };
 
   return (
     <div className='App'>
-      <Grid matrix={graph.matrix} updateGraph={updateGraph} />
+      <Grid matrix={graph.matrix} updateGraph={updateNode} />
       <div className='ControlPanel'>
         <h1>Information</h1>
         <p>Path Length: {pathLength}</p>
@@ -149,6 +152,26 @@ function App() {
                   label={heuristic.label}
                   checked={heuristic.value === options.heuristic.value}
                   onChange={() => setOptions({...options, heuristic})}
+                />)}
+              <p>Templates:</p>
+              {options.templates.map((template) =>
+                <RadioButton
+                  key={template}
+                  label={template}
+                  checked={false}
+                  onChange={() => {
+                    fetch(`http://localhost:8080/templates/${template}.json`, {
+                      method: 'GET',
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                          const newMatrix = [...graph.matrix];
+                          data.forEach((_, x) =>
+                            data[x].forEach((_, y) =>
+                              newMatrix[x][y] = data[x][y]));
+                          updateGraph(newMatrix);
+                        });
+                  }}
                 />)}
             </div> :
           undefined

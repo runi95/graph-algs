@@ -3,7 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
 const winston = require('winston');
-const {port, logLevel} = require('./config/config');
+const {port, logLevel, templatesDir} = require('./config/config');
 const routes = require('./routes');
 
 const logger = winston.createLogger({
@@ -44,6 +44,7 @@ app.use(
 
 // Routes
 app.use('/api', routes);
+app.use('/templates', express.static(templatesDir));
 
 // Error middlewares
 app.use((err, _req, res, _next) => {

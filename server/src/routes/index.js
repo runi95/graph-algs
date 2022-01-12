@@ -1,4 +1,6 @@
 const {Router} = require('express');
+const fs = require('fs-extra');
+const {templatesDir} = require('../config/config');
 const AStar = require('../algorithms/aStar');
 const JPS = require('../algorithms/JPS');
 const Dijkstra = require('../algorithms/Dijkstra');
@@ -57,11 +59,15 @@ router.get('/options', async (_req, res) => {
       (heuristic) =>
         ({label: heuristic.label, value: heuristic.name.toLowerCase()}));
 
+  const files = await fs.readdir(templatesDir);
+  const templates = files.map((file) => file.replace(new RegExp('\.[^/.]+$'), ''));
+
   return res.status(200).json({
     algorithms: mappedAlgorithms,
     algorithm: mappedAlgorithms[0],
     heuristics: mappedHeuristics,
     heuristic: mappedHeuristics[0],
+    templates: templates,
   });
 });
 
