@@ -105,7 +105,7 @@ module.exports = class PriorityQueue {
    */
   remove(o) {
     const i = this.#queue.indexOf(o);
-    if (i !== -1) {
+    if (i === -1) {
       return false;
     } else {
       this.#removeAt(i);
