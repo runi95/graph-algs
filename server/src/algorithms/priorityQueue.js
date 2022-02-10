@@ -11,8 +11,8 @@ module.exports = class PriorityQueue {
 
   /**
    * TODO: Write JSDoc
-   * @param {*} e
-   * @return {*}
+   * @param {Node} e
+   * @return {boolean}
    */
   add(e) {
     return this.offer(e);
@@ -21,8 +21,8 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @param {*} e
-   * @return {*}
+   * @param {Node} e
+   * @return {boolean}
    */
   offer(e) {
     const i = this.#size;
@@ -39,8 +39,8 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @param {*} k
-   * @param {*} key
+   * @param {number} k
+   * @param {Node} key
    */
   #siftUp(k, key) {
     while (k > 0) {
@@ -57,8 +57,8 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @param {*} k
-   * @param {*} key
+   * @param {number} k
+   * @param {Node} key
    */
   #siftDown(k, key) {
     const half = this.#size >>> 1;
@@ -81,7 +81,7 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @return {*}
+   * @return {Node}
    */
   poll() {
     if (this.#size === 0) return null;
@@ -100,7 +100,7 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @param {*} o
+   * @param {Node} o
    * @return {Boolean}
    */
   remove(o) {
@@ -116,8 +116,8 @@ module.exports = class PriorityQueue {
   /**
    * TODO: Write JSDoc
    *
-   * @param {*} i
-   * @return {*}
+   * @param {number} i
+   * @return {Node}
    */
   #removeAt(i) {
     const s = --this.#size;
