@@ -121,9 +121,8 @@ module.exports = class PriorityQueue {
    */
   #removeAt(i) {
     const s = --this.#size;
-    this.#queue.pop();
+    const moved = this.#queue.pop();
     if (s !== i) {
-      const moved = this.#queue[s];
       this.#siftDown(i, moved);
       if (this.#queue[i] === moved) {
         this.#siftUp(i, moved);
