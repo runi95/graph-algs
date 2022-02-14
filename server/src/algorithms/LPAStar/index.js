@@ -182,6 +182,7 @@ module.exports = class LPAStar {
     // ComputeShortestPath
     while (openHeap.size > 0) {
       const u = openHeap.poll();
+      u.visited = true;
 
       destinationNode.key = this.calculateKey(
           destinationNode,
@@ -237,7 +238,10 @@ module.exports = class LPAStar {
         curr = curr.parent;
       }
 
-      const visitedFilter = (node) => node.visited && node !== currentNode;
+      const visitedFilter = (node) =>
+        node.visited &&
+        node !== startNode &&
+        node !== destinationNode;
       const visited = this.#graph
           .flat()
           .filter(visitedFilter)
