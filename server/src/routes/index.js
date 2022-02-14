@@ -4,6 +4,7 @@ const {templatesDir} = require('../config/config');
 const AStar = require('../algorithms/aStar');
 const JPS = require('../algorithms/JPS');
 const Dijkstra = require('../algorithms/Dijkstra');
+const LPAStar = require('../algorithms/LPAStar');
 const OctileDistance = require('../heuristics/octileDistance');
 const EuclideanDistance = require('../heuristics/euclideanDistance');
 const ManhattanDistance = require('../heuristics/manhattanDistance');
@@ -13,7 +14,7 @@ const ChebyshevDistance = require('../heuristics/chebyshevDistance');
 // eslint-disable-next-line new-cap
 const router = Router();
 
-const algorithms = [AStar, JPS, Dijkstra];
+const algorithms = [AStar, JPS, Dijkstra, LPAStar];
 const heuristics = [
   ManhattanDistance,
   CanberraDistance,

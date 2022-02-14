@@ -1,10 +1,27 @@
+const defaultComparator = (a, b) => {
+  if (a > b) {
+    return 1;
+  }
+
+  if (a < b) {
+    return -1;
+  }
+
+  return 0;
+};
+
 module.exports = class PriorityQueue {
   #size;
   #queue;
+  #comparator;
   /**
    * TODO: Write JSDoc
+   *
+   * @param {*} comparator
+   *
    */
-  constructor() {
+  constructor(comparator = defaultComparator) {
+    this.#comparator = comparator;
     this.#size = 0;
     this.#queue = [];
   }
@@ -46,7 +63,7 @@ module.exports = class PriorityQueue {
     while (k > 0) {
       const parent = (k - 1) >>> 1;
       const e = this.#queue[parent];
-      if (key >= e) break;
+      if (this.#comparator(key, e) >= 0) break;
 
       this.#queue[k] = e;
       k = parent;
@@ -69,7 +86,7 @@ module.exports = class PriorityQueue {
       if (right < this.#size && c > this.#queue[right]) {
         c = this.#queue[child = right];
       }
-      if (key <= c) break;
+      if (this.#comparator(key, c) <= 0) break;
 
       this.#queue[k] = c;
       k = child;
@@ -124,9 +141,9 @@ module.exports = class PriorityQueue {
     const moved = this.#queue.pop();
     if (s !== i) {
       this.#siftDown(i, moved);
-      if (this.#queue[i] === moved) {
+      if (this.#comparator(this.#queue[i], moved) === 0) {
         this.#siftUp(i, moved);
-        if (this.#queue[i] !== moved) {
+        if (this.#comparator(this.#queue[i], moved) !== 0) {
           return moved;
         }
       }
