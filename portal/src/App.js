@@ -138,7 +138,7 @@ function App() {
         setHeuristic={(heuristic) => setOptions({...options, heuristic})}
         heuristic={options?.heuristic}
         templates={options?.templates}
-        setTemplate={() => {
+        setTemplate={(template) => {
           fetch(`http://localhost:8080/templates/${template}.json`, {
             method: 'GET',
           })
