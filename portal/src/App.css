@@ -3,22 +3,3 @@
     text-align: center;
     padding: 1em;
 }
-
-button {
-    cursor: pointer;
-    height: 40px;
-    min-width: 60px;
-    border: 2px solid #306bb4;
-    border-radius: 8px;
-    background-color: #49f;
-    font-weight: bold;
-    padding: 10px;
-}
-
-.ControlPanel {
-    color: #ddd;
-    border: 3px solid #282828;
-    margin: 0 auto;
-    flex-grow: 1;
-    margin-left: 8px;
-}

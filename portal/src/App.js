@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import debounce from 'lodash.debounce';
 import Grid from './Grid';
-import RadioButton from './RadioButton';
+import ControlPanel from './ControlPanel';
 import './App.css';
 
 const gridHeight = 20;
@@ -128,55 +128,30 @@ function App() {
   return (
     <div className='App'>
       <Grid matrix={graph.matrix} updateGraph={updateNode} />
-      <div className='ControlPanel'>
-        <h1>Information</h1>
-        <p>Path Length: {pathLength}</p>
-        <p>Visited nodes: {visitedNodes}</p>
-        <h1>Options</h1>
-        {
-          options ?
-            <div>
-              <p>Algorithm:</p>
-              {options.algorithms.map((algorithm) =>
-                <RadioButton
-                  key={algorithm.value}
-                  label={algorithm.label}
-                  checked={algorithm.value === options.algorithm.value}
-                  onChange={() => setOptions({...options, algorithm})}
-                />)}
-              <p>Heuristic:</p>
-              {options.heuristics.map((heuristic) =>
-                <RadioButton
-                  key={heuristic.value}
-                  disabled={options.algorithm?.usesHeuristics !== true}
-                  label={heuristic.label}
-                  checked={heuristic.value === options.heuristic.value}
-                  onChange={() => setOptions({...options, heuristic})}
-                />)}
-              <p>Templates:</p>
-              {options.templates.map((template) =>
-                <RadioButton
-                  key={template}
-                  label={template}
-                  checked={false}
-                  onChange={() => {
-                    fetch(`http://localhost:8080/templates/${template}.json`, {
-                      method: 'GET',
-                    })
-                        .then((response) => response.json())
-                        .then((data) => {
-                          const newMatrix = [...graph.matrix];
-                          data.forEach((_, x) =>
-                            data[x].forEach((_, y) =>
-                              newMatrix[x][y] = data[x][y]));
-                          updateGraph(newMatrix);
-                        });
-                  }}
-                />)}
-            </div> :
-          undefined
-        }
-      </div>
+      <ControlPanel
+        pathLength={pathLength}
+        visitedNodes={visitedNodes}
+        algorithmOptions={options?.algorithms}
+        setAlgorithm={(algorithm) => setOptions({...options, algorithm})}
+        algorithm={options?.algorithm}
+        heuristicOptions={options?.heuristics}
+        setHeuristic={(heuristic) => setOptions({...options, heuristic})}
+        heuristic={options?.heuristic}
+        templates={options?.templates}
+        setTemplate={() => {
+          fetch(`http://localhost:8080/templates/${template}.json`, {
+            method: 'GET',
+          })
+              .then((response) => response.json())
+              .then((data) => {
+                const newMatrix = [...graph.matrix];
+                data.forEach((_, x) =>
+                  data[x].forEach((_, y) =>
+                    newMatrix[x][y] = data[x][y]));
+                updateGraph(newMatrix);
+              });
+        }}
+      />
     </div>
   );
 };
