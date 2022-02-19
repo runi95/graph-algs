@@ -4,6 +4,7 @@
     margin: 0 auto;
     flex-grow: 1;
     margin-left: 8px;
+    overflow-y: auto;
 }
 
 button {
