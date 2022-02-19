@@ -9,6 +9,7 @@ function ControlPanel(props) {
       <h1>Information</h1>
       <p>Path Length: {props.pathLength}</p>
       <p>Visited nodes: {props.visitedNodes}</p>
+      <p>Time: {props.executionTime}</p>
       <h1>Options</h1>
       {
         <div>
@@ -46,6 +47,7 @@ function ControlPanel(props) {
 ControlPanel.propTypes = {
   pathLength: PropTypes.string,
   visitedNodes: PropTypes.string,
+  executionTime: PropTypes.string,
   algorithmOptions: PropTypes.array,
   setAlgorithm: PropTypes.func.isRequired,
   algorithm: PropTypes.object,

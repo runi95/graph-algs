@@ -22,6 +22,7 @@ function App() {
   );
   const [pathLength, setPathLength] = useState('');
   const [visitedNodes, setVisitedNodes] = useState('');
+  const [executionTime, setExecutionTime] = useState('');
   const [options, setOptions] = useState(null);
   const [graph, setGraph] = useState({
     start: initialStart,
@@ -97,10 +98,11 @@ function App() {
             }
           }
 
-          const {solution, visited} = data;
+          const {solution, visited, executionTime} = data;
 
           setPathLength(solution.length.toString());
           setVisitedNodes((solution.length + visited.length).toString());
+          setExecutionTime(`${executionTime.toFixed(2)}ms`);
 
           visited.forEach(({x, y}) => {
             newMatrix[x][y] = 'Visited';
@@ -131,6 +133,7 @@ function App() {
       <ControlPanel
         pathLength={pathLength}
         visitedNodes={visitedNodes}
+        executionTime={executionTime}
         algorithmOptions={options?.algorithms}
         setAlgorithm={(algorithm) => setOptions({...options, algorithm})}
         algorithm={options?.algorithm}

@@ -41,10 +41,13 @@ router.post('/run', async (req, res) => {
     return res.status(400).send({error: `Invalid algorithm '${algorithm}'`});
   }
 
-  const data = new Algorithm(matrix)
-      .search(start.x, start.y, goal.x, goal.y, new Heuristic());
+  const h = new Heuristic();
+  const startTime = process.hrtime();
+  const alg = new Algorithm(matrix);
+  const data = alg.search(start.x, start.y, goal.x, goal.y, h);
+  const executionTime = process.hrtime(startTime)[1] / 1000000;
 
-  return res.status(200).json(data);
+  return res.status(200).json({...data, executionTime});
 });
 
 router.get('/options', async (_req, res) => {
