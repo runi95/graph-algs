@@ -1,6 +1,6 @@
 import {Point2D} from './point2d';
 
-export class Node {
+export class Node2D {
     public readonly point: Point2D;
 
     constructor(point: Point2D) {
