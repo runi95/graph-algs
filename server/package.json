@@ -37,6 +37,9 @@
     ],
     "require": [
       "ts-node/register"
+    ],
+    "files": [
+      "!**/*.d.ts"
     ]
   }
 }
