@@ -1,18 +1,17 @@
-const {Router} = require('express');
-const fs = require('fs-extra');
-const {templatesDir} = require('../config/config');
-const AStar = require('../algorithms/aStar');
-const JPS = require('../algorithms/JPS');
-const Dijkstra = require('../algorithms/Dijkstra');
-const LPAStar = require('../algorithms/LPAStar');
-const OctileDistance = require('../heuristics/octileDistance');
-const EuclideanDistance = require('../heuristics/euclideanDistance');
-const ManhattanDistance = require('../heuristics/manhattanDistance');
-const CanberraDistance = require('../heuristics/canberraDistance');
-const ChebyshevDistance = require('../heuristics/chebyshevDistance');
+import {Router} from 'express';
+import * as fs from 'fs-extra';
+import {templatesDir} from '../config/config';
+import {AStar} from '../algorithms/aStar';
+import {JPS} from '../algorithms/JPS';
+import {Dijkstra} from '../algorithms/Dijkstra';
+import {LPAStar} from '../algorithms/LPAStar';
+import {OctileDistance} from '../heuristics/octileDistance';
+import {EuclideanDistance} from '../heuristics/euclideanDistance';
+import {ManhattanDistance} from '../heuristics/manhattanDistance';
+import {CanberraDistance} from '../heuristics/canberraDistance';
+import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
 
-// eslint-disable-next-line new-cap
-const router = Router();
+export const router = Router();
 
 const algorithms = [AStar, JPS, Dijkstra, LPAStar];
 const heuristics = [
@@ -30,13 +29,13 @@ router.post('/run', async (req, res) => {
   const selectedHeuristic = heuristic.toLowerCase();
 
   const Heuristic = heuristics.find(
-      (heuristic) => heuristic.name.toLowerCase() === selectedHeuristic);
+    (heuristic) => heuristic.name.toLowerCase() === selectedHeuristic);
   if (Heuristic === undefined) {
     return res.status(400).send({error: `Invalid heuristic '${heuristic}'`});
   }
 
   const Algorithm = algorithms.find(
-      (algorithm) => algorithm.name.toLowerCase() === selectedAlgorithm);
+    (algorithm) => algorithm.name.toLowerCase() === selectedAlgorithm);
   if (Algorithm === undefined) {
     return res.status(400).send({error: `Invalid algorithm '${algorithm}'`});
   }
@@ -52,16 +51,16 @@ router.post('/run', async (req, res) => {
 
 router.get('/options', async (_req, res) => {
   const mappedAlgorithms = algorithms.map(
-      (algorithm) =>
-        ({
-          label: algorithm.label,
-          value: algorithm.name.toLowerCase(),
-          usesHeuristics: algorithm.usesHeuristics,
-        }));
+    (algorithm) =>
+    ({
+      label: algorithm.label,
+      value: algorithm.name.toLowerCase(),
+      usesHeuristics: algorithm.usesHeuristics,
+    }));
 
   const mappedHeuristics = heuristics.map(
-      (heuristic) =>
-        ({label: heuristic.label, value: heuristic.name.toLowerCase()}));
+    (heuristic) =>
+      ({label: heuristic.label, value: heuristic.name.toLowerCase()}));
 
   const files = await fs.readdir(templatesDir);
   const templates = files.map((file) => file.replace(new RegExp('\.[^/.]+$'), ''));
@@ -74,5 +73,3 @@ router.get('/options', async (_req, res) => {
     templates: templates,
   });
 });
-
-module.exports = router;
