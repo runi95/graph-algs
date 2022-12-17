@@ -5,31 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
-            "name": "Test file",
-            "skipFiles": [
-                "<node_internals>/**"
+            "name": "Debug Server",
+            "args": [
+                "./src/index.ts"
             ],
-            "program": "${file}"
+            "runtimeArgs": [
+                "--nolazy",
+                "-r",
+                "ts-node/register"
+            ],
+            "sourceMaps": true,
+            "localRoot": "${workspaceFolder}/server"
         },
         {
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
-            "name": "Mocha tests",
-            "program": "${workspaceFolder}/server/node_modules/mocha/bin/_mocha",
+            "name": "Debug Server Tests",
+            "program": "./node_modules/ava/entrypoints/cli.mjs",
             "args": [
-                "--reporter",
-                "dot",
-                "--slow",
-                "5000",
-                "--colors",
-                "${workspaceFolder}/server/tests/*.test.js"
+                "${file}"
             ],
-            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std",
+            "console": "integratedTerminal",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+            "localRoot": "${workspaceFolder}/server"
         }
     ]
 }
