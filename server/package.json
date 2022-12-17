@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "postbuild": "node copyAssets.js",
-    "start": "node ./dist",
+    "start": "node ./dist/src",
     "test": "ava",
     "lint": "eslint src/*/**.js"
   },
