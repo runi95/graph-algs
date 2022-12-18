@@ -1,7 +1,8 @@
-export class Node {
-  public readonly x: number;
-  public readonly y: number;
-  public readonly isWall: boolean;
+import {Node} from '../node';
+import {Point} from '../point';
+
+export class LPAStarNode<P extends Point> {
+  public readonly node: Node<P>;
 
   public key: number[];
   public g: number;
@@ -9,12 +10,10 @@ export class Node {
 
   public visited: boolean = false;
   public closed: boolean = false;
-  public parent: Node | null = null;
+  public parent: LPAStarNode<P> | null = null;
 
-  constructor(x: number, y: number, isWall: boolean) {
-    this.x = x;
-    this.y = y;
-    this.isWall = isWall;
+  constructor(node: Node<P>) {
+    this.node = node;
     this.key = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
 
     this.g = Number.POSITIVE_INFINITY;

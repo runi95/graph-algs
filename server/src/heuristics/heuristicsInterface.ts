@@ -1,3 +1,5 @@
-export interface Heuristics {
-    calculate: (x: number, y: number, x2: number, y2: number) => number
+import {Point} from '../algorithms/point';
+
+export interface Heuristics<P extends Point> {
+    calculate: (a: P, b: P) => number
 }

@@ -1,8 +1,9 @@
 import {PriorityQueue} from '../priorityQueue';
-import {Node} from '../AStar/node';
+import {AStarNode} from '../AStar/node';
 import {OctileDistance} from '../../heuristics/octileDistance';
 import {Heuristics} from '../../heuristics/heuristicsInterface';
 import {Point2D} from '../point2d';
+import {Graph} from '../graph';
 
 const octileDistance = new OctileDistance();
 
@@ -10,65 +11,67 @@ export class JPS {
   static label = 'Jump point';
   static usesHeuristics = true;
 
-  private graph: Node[][];
+  private readonly dimensions: number[];
+  private graph: AStarNode<Point2D>[];
 
-  constructor(graph: string[][]) {
-    this.graph = graph.map((_, x) => graph[x].map((_, y) => new Node(x, y, graph[x][y] === 'Wall')));
+  constructor(graph: Graph<Point2D>) {
+    this.dimensions = graph.dimensions;
+    this.graph = graph.nodes.map(p => new AStarNode(p));
   }
 
-  private neighbors(node: Node): Node[] {
+  private neighbors(node: AStarNode<Point2D>): AStarNode<Point2D>[] {
     const ret = [];
     const parent = node.parent;
-    const x = node.x;
-    const y = node.y;
+    const x = node.node.point.x;
+    const y = node.node.point.y;
 
     if (parent) {
-      const px = parent.x;
-      const py = parent.y;
+      const px = parent.node.point.x;
+      const py = parent.node.point.y;
 
       const dx = (x - px) / Math.max(Math.abs(x - px), 1);
       const dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
       if (dx !== 0) {
         if (this.isPathable(x, y - 1)) {
-          ret.push(this.graph[x][y - 1]);
+          ret.push(this.graph[x * this.dimensions[1] + y - 1]);
         }
 
         if (this.isPathable(x, y + 1)) {
-          ret.push(this.graph[x][y + 1]);
+          ret.push(this.graph[x * this.dimensions[1] + y + 1]);
         }
 
         if (this.isPathable(x + dx, y)) {
-          ret.push(this.graph[x + dx][y]);
+          ret.push(this.graph[(x + dx) * this.dimensions[1] + y]);
         }
       } else if (dy !== 0) {
         if (this.isPathable(x - 1, y)) {
-          ret.push(this.graph[x - 1][y]);
+          ret.push(this.graph[(x - 1) * this.dimensions[1] + y]);
         }
 
         if (this.isPathable(x + 1, y)) {
-          ret.push(this.graph[x + 1][y]);
+          ret.push(this.graph[(x + 1) * this.dimensions[1] + y]);
         }
 
         if (this.isPathable(x, y + dy)) {
-          ret.push(this.graph[x][y + dy]);
+          ret.push(this.graph[x * this.dimensions[1] + y + dy]);
         }
       }
     } else {
       if (this.isPathable(x + 1, y)) {
-        ret.push(this.graph[x + 1][y]);
+        ret.push(this.graph[(x + 1) * this.dimensions[1] + y]);
       }
 
       if (this.isPathable(x - 1, y)) {
-        ret.push(this.graph[x - 1][y]);
+        ret.push(this.graph[(x - 1) * this.dimensions[1] + y]);
       }
 
       if (this.isPathable(x, y + 1)) {
-        ret.push(this.graph[x][y + 1]);
+        ret.push(this.graph[x * this.dimensions[1] + y + 1]);
       }
 
       if (this.isPathable(x, y - 1)) {
-        ret.push(this.graph[x][y - 1]);
+        ret.push(this.graph[x * this.dimensions[1] + y - 1]);
       }
     }
 
@@ -84,15 +87,15 @@ export class JPS {
       return false;
     }
 
-    if (x >= this.graph.length) {
+    if (x >= this.dimensions[0]) {
       return false;
     }
 
-    if (y >= this.graph[x].length) {
+    if (y >= this.dimensions[1]) {
       return false;
     }
 
-    return !this.graph[x][y].isWall;
+    return !this.graph[x * this.dimensions[1] + y].node.isWall;
   }
 
   private jump(x: number, y: number, px: number, py: number, destinationX: number, destinationY: number): number[] | null {
@@ -101,13 +104,13 @@ export class JPS {
 
     if (x < 0 ||
       y < 0 ||
-      x >= this.graph.length ||
-      y >= this.graph[x].length
+      x >= this.dimensions[0] ||
+      y >= this.dimensions[1]
     ) {
       return null;
     }
 
-    if (this.graph[x][y].isWall) {
+    if (this.graph[x * this.dimensions[1] + y].node.isWall) {
       return null;
     }
 
@@ -146,50 +149,50 @@ export class JPS {
     return this.jump(x + dx, y + dy, x, y, destinationX, destinationY);
   }
 
-  public search(sourceX: number, sourceY: number, destinationX: number, destinationY: number, heuristic: Heuristics) {
-    const openHeap = new PriorityQueue<Node>();
-    openHeap.add(this.graph[sourceX][sourceY]);
+  public search(source: number[], destination: number[], heuristic: Heuristics<Point2D>) {
+    const openHeap = new PriorityQueue<AStarNode<Point2D>>();
+    openHeap.add(this.graph[source[0] * this.dimensions[1] + source[1]]);
 
     while (openHeap.size > 0) {
-      const currentNode = openHeap.poll() as Node;
+      const currentNode = openHeap.poll() as AStarNode<Point2D>;
       currentNode.closed = true;
 
-      if (currentNode.x === destinationX && currentNode.y === destinationY) {
-        let curr = currentNode.parent as Node;
+      if (currentNode.node.point.x === destination[0] && currentNode.node.point.y === destination[1]) {
+        let curr = currentNode.parent as AStarNode<Point2D>;
         const path: Point2D[] = [];
         while (curr.parent) {
-          path.push({x: curr.x, y: curr.y});
+          path.push(new Point2D(curr.node.point.x, curr.node.point.y));
           curr = curr.parent;
         }
 
-        path.push({x: sourceX, y: sourceY});
+        path.push(new Point2D(source[0], source[1]));
 
-        const visitedFilter = (node: Node) => node.visited && node !== currentNode;
+        const visitedFilter = (node: AStarNode<Point2D>) => node.visited && node !== currentNode;
         const visited = this.graph
           .flat()
           .filter(visitedFilter)
-          .map((n) => ({x: n.x, y: n.y}));
+          .map((n) => (n.node.point.coords));
 
         const solution = path
-          .reduce((acc: Point2D[], curr: Point2D, currentIndex: number) => {
-            let prevNode;
+          .reduce((acc: number[][], curr: Point2D, currentIndex: number) => {
+            let prevNode: number[];
             if (currentIndex === 0) {
-              prevNode = currentNode;
+              prevNode = currentNode.node.point.coords;
             } else {
               prevNode = acc[acc.length - 1];
             }
 
-            const arr: Point2D[] = [];
-            const dx = curr.x - prevNode.x;
+            const arr: number[][] = [];
+            const dx = curr.x - prevNode[0];
             const lx = Math.abs(dx);
             for (let i = 1; i < lx + 1; i++) {
-              arr.push({x: prevNode.x + i * (dx / lx), y: prevNode.y});
+              arr.push([prevNode[0] + i * (dx / lx), prevNode[1]]);
             }
 
-            const dy = curr.y - prevNode.y;
+            const dy = curr.y - prevNode[1];
             const ly = Math.abs(dy);
             for (let i = 1; i < ly + 1; i++) {
-              arr.push({x: prevNode.x, y: prevNode.y + i * (dy / ly)});
+              arr.push([prevNode[0], prevNode[1] + i * (dy / ly)]);
             }
 
             return [...acc].concat(arr);
@@ -203,28 +206,26 @@ export class JPS {
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i];
         const jumpPoint = this.jump(
-          neighbor.x,
-          neighbor.y,
-          currentNode.x,
-          currentNode.y,
-          destinationX,
-          destinationY,
+          neighbor.node.point.x,
+          neighbor.node.point.y,
+          currentNode.node.point.x,
+          currentNode.node.point.y,
+          destination[0],
+          destination[1],
         );
 
         if (jumpPoint) {
           const jx = jumpPoint[0];
           const jy = jumpPoint[1];
-          const jumpNode = this.graph[jx][jy];
+          const jumpNode = this.graph[jx * this.dimensions[1] + jy];
 
-          if (jumpNode.closed || jumpNode.isWall) {
+          if (jumpNode.closed || jumpNode.node.isWall) {
             continue;
           }
 
           const d = octileDistance.calculate(
-            neighbor.x,
-            neighbor.y,
-            destinationX,
-            destinationY,
+            neighbor.node.point,
+            new Point2D(destination[0], destination[1])
           );
           const gScore = currentNode.g + d;
           const beenVisited = neighbor.visited;
@@ -232,10 +233,8 @@ export class JPS {
             jumpNode.visited = true;
             jumpNode.parent = currentNode;
             jumpNode.h = neighbor.h || heuristic.calculate(
-              neighbor.x,
-              neighbor.y,
-              destinationX,
-              destinationY,
+              neighbor.node.point,
+              new Point2D(destination[0], destination[1])
             );
             jumpNode.g = gScore;
             jumpNode.f = jumpNode.g + jumpNode.h;

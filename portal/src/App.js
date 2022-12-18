@@ -104,12 +104,12 @@ function App() {
           setVisitedNodes((solution.length + visited.length).toString());
           setExecutionTime(`${executionTime.toFixed(2)}ms`);
 
-          visited.forEach(({x, y}) => {
-            newMatrix[x][y] = 'Visited';
+          visited.forEach((p) => {
+            newMatrix[p[0]][p[1]] = 'Visited';
           });
 
-          solution.forEach(({x, y}) => {
-            newMatrix[x][y] = 'Solution';
+          solution.forEach((p) => {
+            newMatrix[p[0]][p[1]] = 'Solution';
           });
 
           setGraph({...graph, matrix: newMatrix});

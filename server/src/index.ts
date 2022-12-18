@@ -13,7 +13,7 @@ const logger = winston.createLogger({
     winston.format.colorize(),
     winston.format.timestamp({format: 'DD-MM-YYYY hh:mm:ss'}),
     winston.format.printf(
-      (info) => `${info.level}\t${[info.timestamp]}\t${info.stack ?? info.message}`,
+      (info) => `${info.level}\t${[info['timestamp']]}\t${info['stack'] ?? info.message}`,
     ),
   ),
   transports: [new winston.transports.Console()],
@@ -23,7 +23,7 @@ const logger = winston.createLogger({
 logger.info('Server starting up...');
 
 const app = express();
-app.locals.logger = logger;
+app.locals['logger'] = logger;
 
 // Middlewares
 app.use(cors());

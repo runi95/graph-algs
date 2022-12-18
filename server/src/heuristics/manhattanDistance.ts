@@ -1,11 +1,11 @@
+import {Point} from '../algorithms/point';
 import {Heuristics} from './heuristicsInterface';
 
-export class ManhattanDistance implements Heuristics {
+export class ManhattanDistance<P extends Point> implements Heuristics<P> {
   public static readonly label = 'Manhattan distance';
 
-  public calculate(nodeX: number, nodeY: number, destinationX: number, destinationY: number): number {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-    return (dx + dy);
+  public calculate(a: Point, b: Point): number {
+    return a.distanceMatrix(b)
+      .reduce((acc, curr) => acc + Math.abs(curr), 0);
   }
 };

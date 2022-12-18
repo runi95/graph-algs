@@ -5,8 +5,10 @@ import {AStar} from '../algorithms/aStar';
 import {JPS} from '../algorithms/JPS';
 import {Dijkstra} from '../algorithms/Dijkstra';
 import {LPAStar} from '../algorithms/LPAStar';
-import {OctileDistance} from '../heuristics/octileDistance';
+import {Node} from '../algorithms/node';
+import {Point2D} from '../algorithms/point2d';
 import {EuclideanDistance} from '../heuristics/euclideanDistance';
+import {OctileDistance} from '../heuristics/octileDistance';
 import {ManhattanDistance} from '../heuristics/manhattanDistance';
 import {CanberraDistance} from '../heuristics/canberraDistance';
 import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
@@ -42,8 +44,11 @@ router.post('/run', async (req, res) => {
 
   const h = new Heuristic();
   const startTime = process.hrtime();
-  const alg = new Algorithm(matrix);
-  const data = alg.search(start.x, start.y, goal.x, goal.y, h);
+  const alg = new Algorithm<Point2D>({
+    dimensions: [32, 20],
+    nodes: matrix.map((_: never, x: number) => matrix[x].map((_: never, y: number) => new Node(new Point2D(x, y), matrix[x][y] === 'Wall'))).flat()
+  });
+  const data = alg.search([start.x, start.y], [goal.x, goal.y], h);
   const executionTime = process.hrtime(startTime)[1] / 1000000;
 
   return res.status(200).json({...data, executionTime});

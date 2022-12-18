@@ -1,15 +1,12 @@
+import {Point} from '../algorithms/point';
 import {Heuristics} from './heuristicsInterface';
 
-export class ChebyshevDistance implements Heuristics {
+export class ChebyshevDistance<P extends Point> implements Heuristics<P> {
   public static readonly label = 'Chebyshev distance';
 
-  public calculate(nodeX: number, nodeY: number, destinationX: number, destinationY: number): number {
-    const dx = Math.abs(nodeX - destinationX) /
-      (Math.abs(nodeX) + Math.abs(destinationX));
-    const dy = Math.abs(nodeY - destinationY) /
-      (Math.abs(nodeY) + Math.abs(destinationY));
-    return Math.max(dx, dy);
+  public calculate(a: Point, b: Point): number {
+    return a.distanceMatrix(b)
+      .map((d, i) => Math.abs(d) / (Math.abs(a.coords[i]) + Math.abs(b.coords[i])))
+      .reduce((acc, curr) => Math.max(acc, curr), 0);
   }
 };
-
-

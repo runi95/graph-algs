@@ -1,13 +1,11 @@
+import {Point} from '../algorithms/point';
 import {Heuristics} from './heuristicsInterface';
 
-export class EuclideanDistance implements Heuristics {
-  static label = 'Euclidean distance';
+export class EuclideanDistance<P extends Point> implements Heuristics<P> {
+  public static readonly label = 'Euclidean distance';
 
-  public calculate(nodeX: number, nodeY: number, destinationX: number, destinationY: number): number {
-    const dx = Math.abs(nodeX - destinationX);
-    const dy = Math.abs(nodeY - destinationY);
-
-    return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+  public calculate(a: P, b: P): number {
+    return Math.sqrt(a.distanceMatrix(b).reduce((acc, curr) => acc + Math.pow(curr, 2), 0));
   }
 };
 

@@ -1,7 +1,8 @@
-export class Node {
-  public readonly x: number;
-  public readonly y: number;
-  public readonly isWall: boolean;
+import {Node} from '../node';
+import {Point} from '../point';
+
+export class AStarNode<P extends Point> {
+  public readonly node: Node<P>;
 
   public f: number = 0;
   public g: number = 0;
@@ -10,10 +11,8 @@ export class Node {
   public closed: boolean = false;
   public parent: this | null = null;
 
-  constructor(x: number, y: number, isWall: boolean) {
-    this.x = x;
-    this.y = y;
-    this.isWall = isWall;
+  constructor(node: Node<P>) {
+    this.node = node;
   }
 
   public valueOf(): number {
