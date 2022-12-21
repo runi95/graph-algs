@@ -2,179 +2,239 @@ import {PriorityQueue} from '../priorityQueue';
 import {AStarNode} from '../AStar/node';
 import {OctileDistance} from '../../heuristics/octileDistance';
 import {Heuristics} from '../../heuristics/heuristicsInterface';
-import {Point2D} from '../point2d';
+import {Point} from '../point';
 import {Graph} from '../graph';
 
 const octileDistance = new OctileDistance();
 
-export class JPS {
-  static label = 'Jump point';
-  static usesHeuristics = true;
+export class JPS<P extends Point> {
+  public static readonly label = 'Jump point';
+  public static readonly usesHeuristics = true;
 
   private readonly dimensions: number[];
-  private graph: AStarNode<Point2D>[];
+  private graph: AStarNode<P>[];
 
-  constructor(graph: Graph<Point2D>) {
+  constructor(graph: Graph<P>) {
     this.dimensions = graph.dimensions;
     this.graph = graph.nodes.map(p => new AStarNode(p));
   }
 
-  private neighbors(node: AStarNode<Point2D>): AStarNode<Point2D>[] {
+  private neighbors(node: AStarNode<P>): AStarNode<P>[] {
     const ret = [];
     const parent = node.parent;
-    const x = node.node.point.x;
-    const y = node.node.point.y;
+    let mul = 1;
+    const dMul = [];
+    for (let i = this.dimensions.length - 1; i >= 0; i--) {
+      dMul.push(mul);
+      mul *= this.dimensions[i];
+    }
+    dMul.reverse();
+
+    let pointRef = 0;
+    for (let i = 0; i < this.dimensions.length; i++) {
+      pointRef += node.node.point.coords[i] * dMul[i];
+    }
 
     if (parent) {
-      const px = parent.node.point.x;
-      const py = parent.node.point.y;
+      const d = [];
+      for (let i = 0; i < this.dimensions.length; i++) {
+        d.push((node.node.point.coords[i] - parent.node.point.coords[i]) / Math.max(Math.abs(node.node.point.coords[i] - parent.node.point.coords[i]), 1));
+      }
 
-      const dx = (x - px) / Math.max(Math.abs(x - px), 1);
-      const dy = (y - py) / Math.max(Math.abs(y - py), 1);
+      for (let di = 0; di < d.length; di++) {
+        if (d[di] !== 0) {
+          for (let i = 0; i < this.dimensions.length; i++) {
 
-      if (dx !== 0) {
-        if (this.isPathable(x, y - 1)) {
-          ret.push(this.graph[x * this.dimensions[1] + y - 1]);
-        }
+            if (i === di) continue;
+            if (node.node.point.coords[i] - 1 >= 0) {
+              const n = this.graph[pointRef - dMul[i]];
+              if (!n.node.isWall) {
+                ret.push(n);
+              }
+            }
 
-        if (this.isPathable(x, y + 1)) {
-          ret.push(this.graph[x * this.dimensions[1] + y + 1]);
-        }
+            if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
+              const n = this.graph[pointRef + dMul[i]];
+              if (!n.node.isWall) {
+                ret.push(n);
+              }
+            }
+          }
 
-        if (this.isPathable(x + dx, y)) {
-          ret.push(this.graph[(x + dx) * this.dimensions[1] + y]);
-        }
-      } else if (dy !== 0) {
-        if (this.isPathable(x - 1, y)) {
-          ret.push(this.graph[(x - 1) * this.dimensions[1] + y]);
-        }
+          if (node.node.point.coords[di] + d[di] < this.dimensions[di] && node.node.point.coords[di] + d[di] >= 0) {
+            const n = this.graph[pointRef + (d[di] * dMul[di])];
+            if (!n.node.isWall) {
+              ret.push(n);
+            }
+          }
 
-        if (this.isPathable(x + 1, y)) {
-          ret.push(this.graph[(x + 1) * this.dimensions[1] + y]);
-        }
-
-        if (this.isPathable(x, y + dy)) {
-          ret.push(this.graph[x * this.dimensions[1] + y + dy]);
+          break;
         }
       }
     } else {
-      if (this.isPathable(x + 1, y)) {
-        ret.push(this.graph[(x + 1) * this.dimensions[1] + y]);
-      }
+      for (let i = 0; i < this.dimensions.length; i++) {
+        if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
+          const n = this.graph[pointRef + dMul[i]];
+          if (!n.node.isWall) {
+            ret.push(n);
+          }
+        }
 
-      if (this.isPathable(x - 1, y)) {
-        ret.push(this.graph[(x - 1) * this.dimensions[1] + y]);
-      }
-
-      if (this.isPathable(x, y + 1)) {
-        ret.push(this.graph[x * this.dimensions[1] + y + 1]);
-      }
-
-      if (this.isPathable(x, y - 1)) {
-        ret.push(this.graph[x * this.dimensions[1] + y - 1]);
+        if (node.node.point.coords[i] - 1 >= 0) {
+          const n = this.graph[pointRef - dMul[i]];
+          if (!n.node.isWall) {
+            ret.push(n);
+          }
+        }
       }
     }
 
     return ret;
   }
 
-  private isPathable(x: number, y: number): boolean {
-    if (x < 0) {
-      return false;
+  private jump(neighbor: number[], current: AStarNode<P>, destination: AStarNode<P>): number[] | null {
+    if (!neighbor) return null;
+
+    const d: number[] = [];
+    for (let i = 0; i < this.dimensions.length; i++) {
+      d.push(neighbor[i] - current.node.point.coords[i]);
     }
 
-    if (y < 0) {
-      return false;
+    for (let i = 0; i < neighbor.length; i++) {
+      if (neighbor[i] < 0) return null;
+      if (neighbor[i] >= this.dimensions[i]) return null;
     }
 
-    if (x >= this.dimensions[0]) {
-      return false;
+    let mul = 1;
+    const dMul = [];
+    for (let i = this.dimensions.length - 1; i >= 0; i--) {
+      dMul.push(mul);
+      mul *= this.dimensions[i];
+    }
+    dMul.reverse();
+
+    let pointRef = 0;
+    for (let i = 0; i < this.dimensions.length; i++) {
+      pointRef += neighbor[i] * dMul[i];
     }
 
-    if (y >= this.dimensions[1]) {
-      return false;
-    }
-
-    return !this.graph[x * this.dimensions[1] + y].node.isWall;
-  }
-
-  private jump(x: number, y: number, px: number, py: number, destinationX: number, destinationY: number): number[] | null {
-    const dx = x - px;
-    const dy = y - py;
-
-    if (x < 0 ||
-      y < 0 ||
-      x >= this.dimensions[0] ||
-      y >= this.dimensions[1]
-    ) {
+    if (this.graph[pointRef].node.isWall) {
       return null;
     }
 
-    if (this.graph[x * this.dimensions[1] + y].node.isWall) {
-      return null;
+    if (neighbor.every((v, i) => v === destination.node.point.coords[i])) {
+      return neighbor;
     }
 
-    if (x === destinationX && y === destinationY) {
-      return [x, y];
+    let noDir = true;
+    for (let di = 0; di < d.length; di++) {
+      if (d[di] !== 0) {
+        noDir = false;
+        for (let i = 0; i < this.dimensions.length; i++) {
+          if (i === di) continue;
+          if (neighbor[i] - 1 >= 0) {
+            const n = this.graph[pointRef - dMul[i]];
+            if (!n.node.isWall) {
+              let checkPointRef = pointRef;
+              for (let j = 0; j < this.dimensions.length; j++) {
+                if (j === i) continue;
+                checkPointRef -= d[j] * dMul[j];
+              }
+
+              if (checkPointRef < 0 || checkPointRef >= this.graph.length || this.graph[checkPointRef].node.isWall) {
+                return n.node.point.coords;
+              }
+            }
+          }
+
+          if (neighbor[i] + 1 < this.dimensions[i]) {
+            const n = this.graph[pointRef + dMul[i]];
+            if (!n.node.isWall) {
+              let checkPointRef = pointRef;
+              for (let j = 0; j < this.dimensions.length; j++) {
+                if (j === i) continue;
+                checkPointRef -= d[j] * dMul[j];
+              }
+
+              if (checkPointRef < 0 || checkPointRef >= this.graph.length || this.graph[checkPointRef].node.isWall) {
+                return n.node.point.coords;
+              }
+            }
+          }
+        }
+
+        if (di === 0) {
+          break;
+        } else {
+          if (this.jump(neighbor.map((v, i) => {
+            if (i === 0) return v + 1;
+            return v;
+          }), this.graph[pointRef], destination) ||
+            this.jump(neighbor.map((v, i) => {
+              if (i === 0) return v - 1;
+              return v;
+            }), this.graph[pointRef], destination)
+          ) {
+            return neighbor;
+          }
+        }
+
+        break;
+      }
     }
 
-    if (dx !== 0) {
-      if (
-        (this.isPathable(x, y - 1) &&
-          !this.isPathable(x - dx, y - 1)) ||
-        (this.isPathable(x, y + 1) &&
-          !this.isPathable(x - dx, y + 1))
-      ) {
-        return [x, y];
-      }
-    } else if (dy !== 0) {
-      if (
-        (this.isPathable(x - 1, y) &&
-          !this.isPathable(x - 1, y - dy)) ||
-        (this.isPathable(x + 1, y) &&
-          !this.isPathable(x + 1, y - dy))
-      ) {
-        return [x, y];
-      }
-
-      if (this.jump(x + 1, y, x, y, destinationX, destinationY) ||
-        this.jump(x - 1, y, x, y, destinationX, destinationY)
-      ) {
-        return [x, y];
-      }
-    } else {
+    if (noDir) {
       throw new Error('Only horizontal and vertical movements are allowed');
     }
 
-    return this.jump(x + dx, y + dy, x, y, destinationX, destinationY);
+    return this.jump(neighbor.map((v, i) => v + d[i]), this.graph[pointRef], destination);
   }
 
-  public search(source: number[], destination: number[], heuristic: Heuristics<Point2D>) {
-    const openHeap = new PriorityQueue<AStarNode<Point2D>>();
-    openHeap.add(this.graph[source[0] * this.dimensions[1] + source[1]]);
+  public search(source: number[], destination: number[], heuristic: Heuristics<P>) {
+    const openHeap = new PriorityQueue<AStarNode<P>>();
+    let mul = 1;
+    const dMul = [];
+    for (let i = this.dimensions.length - 1; i >= 0; i--) {
+      dMul.push(mul);
+      mul *= this.dimensions[i];
+    }
+    dMul.reverse();
 
+    let sourcePointRef = 0;
+    for (let i = 0; i < this.dimensions.length; i++) {
+      sourcePointRef += source[i] * dMul[i];
+    }
+
+    openHeap.add(this.graph[sourcePointRef]);
+
+    let destinationPointRef = 0;
+    for (let i = 0; i < this.dimensions.length; i++) {
+      destinationPointRef += destination[i] * dMul[i];
+    }
+
+    const destinationNode = this.graph[destinationPointRef];
     while (openHeap.size > 0) {
-      const currentNode = openHeap.poll() as AStarNode<Point2D>;
+      const currentNode = openHeap.poll() as AStarNode<P>;
       currentNode.closed = true;
 
-      if (currentNode.node.point.x === destination[0] && currentNode.node.point.y === destination[1]) {
-        let curr = currentNode.parent as AStarNode<Point2D>;
-        const path: Point2D[] = [];
+      if (currentNode === destinationNode) {
+        let curr = currentNode.parent as AStarNode<P>;
+        const path: number[][] = [];
         while (curr.parent) {
-          path.push(new Point2D(curr.node.point.x, curr.node.point.y));
+          path.push(curr.node.point.coords);
           curr = curr.parent;
         }
 
-        path.push(new Point2D(source[0], source[1]));
+        path.push(source);
 
-        const visitedFilter = (node: AStarNode<Point2D>) => node.visited && node !== currentNode;
+        const visitedFilter = (node: AStarNode<P>) => node.visited && node !== currentNode;
         const visited = this.graph
           .flat()
           .filter(visitedFilter)
-          .map((n) => (n.node.point.coords));
+          .map((n) => n.node.point.coords);
 
         const solution = path
-          .reduce((acc: number[][], curr: Point2D, currentIndex: number) => {
+          .reduce((acc: number[][], curr: number[], currentIndex: number) => {
             let prevNode: number[];
             if (currentIndex === 0) {
               prevNode = currentNode.node.point.coords;
@@ -183,16 +243,26 @@ export class JPS {
             }
 
             const arr: number[][] = [];
-            const dx = curr.x - prevNode[0];
-            const lx = Math.abs(dx);
-            for (let i = 1; i < lx + 1; i++) {
-              arr.push([prevNode[0] + i * (dx / lx), prevNode[1]]);
+
+            const d = [];
+            const l = [];
+            for (let i = 0; i < this.dimensions.length; i++) {
+              d.push(curr[i] - prevNode[i]);
+              l.push(Math.abs(d[i]));
             }
 
-            const dy = curr.y - prevNode[1];
-            const ly = Math.abs(dy);
-            for (let i = 1; i < ly + 1; i++) {
-              arr.push([prevNode[0], prevNode[1] + i * (dy / ly)]);
+            for (let i = 0; i < this.dimensions.length; i++) {
+              for (let j = 1; j < l[i] + 1; j++) {
+                const p = [];
+                for (let k = 0; k < this.dimensions.length; k++) {
+                  if (k === i) {
+                    p.push(prevNode[k] + j * (d[i] / l[i]));
+                  } else {
+                    p.push(prevNode[k]);
+                  }
+                }
+                arr.push(p);
+              }
             }
 
             return [...acc].concat(arr);
@@ -206,18 +276,18 @@ export class JPS {
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i];
         const jumpPoint = this.jump(
-          neighbor.node.point.x,
-          neighbor.node.point.y,
-          currentNode.node.point.x,
-          currentNode.node.point.y,
-          destination[0],
-          destination[1],
+          neighbor.node.point.coords,
+          currentNode,
+          destinationNode,
         );
 
         if (jumpPoint) {
-          const jx = jumpPoint[0];
-          const jy = jumpPoint[1];
-          const jumpNode = this.graph[jx * this.dimensions[1] + jy];
+          let jumpPointPointRef = 0;
+          for (let i = 0; i < this.dimensions.length; i++) {
+            jumpPointPointRef += jumpPoint[i] * dMul[i];
+          }
+
+          const jumpNode = this.graph[jumpPointPointRef];
 
           if (jumpNode.closed || jumpNode.node.isWall) {
             continue;
@@ -225,7 +295,7 @@ export class JPS {
 
           const d = octileDistance.calculate(
             neighbor.node.point,
-            new Point2D(destination[0], destination[1])
+            destinationNode.node.point,
           );
           const gScore = currentNode.g + d;
           const beenVisited = neighbor.visited;
@@ -234,7 +304,7 @@ export class JPS {
             jumpNode.parent = currentNode;
             jumpNode.h = neighbor.h || heuristic.calculate(
               neighbor.node.point,
-              new Point2D(destination[0], destination[1])
+              destinationNode.node.point,
             );
             jumpNode.g = gScore;
             jumpNode.f = jumpNode.g + jumpNode.h;

@@ -15,7 +15,7 @@ import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
 
 export const router = Router();
 
-const algorithms = [AStar, JPS, Dijkstra, LPAStar];
+const algorithms = [JPS, AStar, Dijkstra, LPAStar];
 const heuristics = [
   ManhattanDistance,
   CanberraDistance,
