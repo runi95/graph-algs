@@ -25,6 +25,7 @@
     "@types/fs-extra": "^9.0.13",
     "@types/morgan": "^1.9.3",
     "@types/node": "^18.11.17",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
     "ava": "^5.1.0",
     "eslint": "^8.30.0",
     "mocha": "^10.2.0",
