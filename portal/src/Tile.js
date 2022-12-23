@@ -1,21 +1,20 @@
+// TODO: Fix lint rules
+/* eslint-disable max-len */
+/* eslint-disable react/no-unknown-property */
 import React from 'react';
 import PropTypes from 'prop-types';
-import './Tile.css';
 
-function Tile(props) {
-  return <td
-    className={props.tileClass}
-    draggable={false}
-    data-x={props.x}
-    data-y={props.y} >
-    <div draggable={false} />
-  </td>;
-};
+export default function Tile(props) {
+  return (
+    <mesh scale={1} position={props.position}>
+      <boxGeometry args={[1.1, 1.1, 0]} attach='geometry' />
+      <meshLambertMaterial attach='material' color={props.color} visible={props.visible} />
+    </mesh>
+  );
+}
 
 Tile.propTypes = {
-  tileClass: PropTypes.string.isRequired,
-  x: PropTypes.number.isRequired,
-  y: PropTypes.number.isRequired,
+  color: PropTypes.string,
+  visible: PropTypes.bool.isRequired,
+  position: PropTypes.arrayOf(PropTypes.number).isRequired,
 };
-
-export default Tile;

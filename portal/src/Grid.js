@@ -1,68 +1,75 @@
-import React, {useRef, useState} from 'react';
+// TODO: Fix lint rules
+/* eslint-disable max-len */
+/* eslint-disable react/no-unknown-property */
+import React from 'react';
 import PropTypes from 'prop-types';
-import Row from './Row';
-import './Grid.css';
+import Line from './Line';
+import Tile from './Tile';
 
-const gridHeight = 20;
-const gridWidth = 32;
+export default function Grid(props) {
+  const height = props.height;
+  const width = props.width;
 
-function Grid(props) {
-  const gridDomElement = useRef();
-  const [previousElement, setPreviousElement] = useState();
-  const [activeState, setActiveState] = useState(false);
+  const halfHeight = height * 0.5;
+  const halfWidth = width * 0.5;
 
-  const onMouseDown = (mouseEvent) => {
-    if (mouseEvent.buttons !== 1) return;
+  const meshes = [];
+  for (let i = 0; i < width; i++) {
+    for (let j = 0; j < height; j++) {
+      const state = props.matrix[i][height - j - 1];
 
-    const {x, y} = mouseEvent.target.dataset;
-    const currentNodeState = props.matrix[x][y];
-    if (currentNodeState === 'Wall') {
-      setActiveState(false);
-    } else {
-      setActiveState(true);
+      const position = [i * 1.2 - halfWidth - 2.5, j * 1.2 - halfHeight - 1.4, 0];
+
+      let visible = null;
+      let color = null;
+      switch (state) {
+        case 'Start':
+          color = '#afa';
+          visible = true;
+          break;
+        case 'Goal':
+          color = '#aaf';
+          visible = true;
+          break;
+        case 'Wall':
+          color = '#aaa';
+          visible = true;
+          break;
+        case 'Solution':
+          color = '#49f';
+          visible = true;
+          break;
+        case 'Visited':
+          color = '#324c75';
+          visible = true;
+          break;
+        default:
+          visible = false;
+      }
+
+      meshes.push(<Tile key={`mesh-${i}-${j}`} position={position} color={color} visible={visible} />);
     }
+  }
 
-    if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
+  const lines = [];
+  for (let i = 0; i < height - 1; i++) {
+    lines.push(<Line key={`hline-${i}`} start={[-width, i * 1.2 - halfHeight - 0.8, 0]} end={[width, i * 1.2 - halfHeight - 0.8, 0]} />);
+  }
 
-    if (currentNodeState === 'Wall') {
-      props.updateGraph(x, y, '');
-    } else {
-      props.updateGraph(x, y, 'Wall');
-    }
-  };
+  for (let i = 0; i < width - 1; i++) {
+    lines.push(<Line key={`vline-${i}`} start={[i * 1.2 - halfWidth - 1.9, -height, 0]} end={[i * 1.2 - halfWidth - 1.9, height, 0]} />);
+  }
 
-  const onMouseMove = (mouseEvent) => {
-    if (mouseEvent.target === previousElement) return;
-    if (mouseEvent.buttons !== 1) return;
-
-    setPreviousElement(mouseEvent.target);
-
-    const {x, y} = mouseEvent.target.dataset;
-    const currentNodeState = props.matrix[x][y];
-    if (!activeState && currentNodeState !== 'Wall') return;
-    if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
-
-    props.updateGraph(x, y, activeState ? 'Wall' : '');
-  };
-
-  return props.matrix.length > 0 ? <table id="grid" draggable={false} ref={gridDomElement} onMouseMoveCapture={onMouseMove} onMouseDownCapture={onMouseDown}>
-    <tbody>
-      {[...Array(gridHeight)]
-          .map((_, y) =>
-            <Row
-              key={`row-${y}`}
-              gridWidth={gridWidth}
-              matrix={props.matrix}
-              y={y}
-            />,
-          )}
-    </tbody>
-  </table> : <div />;
-};
+  return (
+    <group>
+      {lines}
+      {meshes}
+    </group>
+  );
+}
 
 Grid.propTypes = {
-  updateGraph: PropTypes.func.isRequired,
+  height: PropTypes.number.isRequired,
+  width: PropTypes.number.isRequired,
   matrix: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
 };
-
-export default Grid;

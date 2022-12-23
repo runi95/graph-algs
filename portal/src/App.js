@@ -1,8 +1,10 @@
+/* eslint-disable react/no-unknown-property */
 import React, {useEffect, useState, useCallback} from 'react';
 import debounce from 'lodash.debounce';
-import Grid from './Grid';
+import {Canvas} from '@react-three/fiber';
 import ControlPanel from './ControlPanel';
 import './App.css';
+import Grid from './Grid';
 
 const gridHeight = 20;
 const gridWidth = 32;
@@ -24,6 +26,8 @@ function App() {
   const [visitedNodes, setVisitedNodes] = useState('');
   const [executionTime, setExecutionTime] = useState('');
   const [options, setOptions] = useState(null);
+  const [previousElement, setPreviousElement] = useState(null);
+  const [activeState, setActiveState] = useState(false);
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
@@ -129,7 +133,58 @@ function App() {
 
   return (
     <div className='App'>
-      <Grid matrix={graph.matrix} updateGraph={updateNode} />
+      <div style={{width: 1377}}>
+        <Canvas className='canvas' shadows onMouseDown={(mouseEvent) => {
+          if (mouseEvent.buttons !== 1) return;
+
+          const {clientX, clientY} = mouseEvent;
+          const {left, top} = mouseEvent.target.getBoundingClientRect();
+          const dx = (clientX - left);
+          const dy = (clientY - top);
+          const canvasWidth = mouseEvent.target.width;
+          const canvasHeight = mouseEvent.target.height;
+          const x = Math.floor(dx / (canvasWidth / gridWidth));
+          const y = Math.floor(dy / (canvasHeight / gridHeight));
+
+          const currentNodeState = graph.matrix[x][y];
+          if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
+
+          if (currentNodeState === 'Wall') {
+            setActiveState(false);
+            updateNode(x, y, '');
+          } else {
+            setActiveState(true);
+            updateNode(x, y, 'Wall');
+          }
+        }} onMouseMove={(mouseEvent) => {
+          if (mouseEvent.buttons !== 1) return;
+
+          const {clientX, clientY} = mouseEvent;
+          const {left, top} = mouseEvent.target.getBoundingClientRect();
+          const dx = (clientX - left);
+          const dy = (clientY - top);
+          const canvasWidth = mouseEvent.target.width;
+          const canvasHeight = mouseEvent.target.height;
+          const x = Math.floor(dx / Math.floor(canvasWidth / gridWidth));
+          const y = Math.floor(dy / Math.floor(canvasHeight / gridHeight));
+
+          if (x === previousElement?.x && y === previousElement?.y) return;
+          setPreviousElement({x, y});
+
+          const currentNodeState = graph.matrix[x][y];
+          if (!activeState && currentNodeState !== 'Wall') return;
+          if (activeState && currentNodeState === 'Wall') return;
+          if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
+
+          updateNode(x, y, activeState ? 'Wall' : '');
+        }} >
+          <ambientLight intensity={1} />
+          <directionalLight position={[0, 0, 100]} intensity={1} />
+          <perspectiveCamera makeDefault position={[0, 0, -10.6]}>
+            <Grid matrix={graph.matrix} height={gridHeight} width={gridWidth} />
+          </perspectiveCamera>
+        </Canvas>
+      </div>
       <ControlPanel
         pathLength={pathLength}
         visitedNodes={visitedNodes}
