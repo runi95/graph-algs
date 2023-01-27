@@ -10,7 +10,7 @@
     "lint": "eslint src/*/**.js"
   },
   "dependencies": {
-    "@react-three/fiber": "^8.9.1",
+    "@react-three/fiber": "^8.10.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
@@ -19,12 +19,12 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "three": "^0.148.0",
-    "web-vitals": "^3.1.0"
+    "three": "^0.149.0",
+    "web-vitals": "^3.1.1"
   },
   "devDependencies": {
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-react": "^7.31.11"
+    "eslint-plugin-react": "^7.32.1"
   },
   "eslintConfig": {
     "extends": [
