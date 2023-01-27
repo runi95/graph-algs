@@ -1,4 +1,5 @@
 import test from 'ava';
+import * as fs from 'fs-extra';
 import {JPS} from '../src/algorithms/JPS';
 import {Node} from '../src/algorithms/node';
 import {Point2D} from '../src/algorithms/point2d';
@@ -18,5 +19,16 @@ test('should find a valid 2D path from source to destination', t => {
 
     // Basic
     t.snapshot(new JPS<Point2D>(graph)
+        .search([1, 18], [30, 1], new ManhattanDistance()));
+
+    const mazeFile = fs.readFileSync(`${__dirname}/../templates/Maze.json`);
+    const maze = JSON.parse(mazeFile.toString('utf8'));
+    const nodes = maze
+                .map((_: never, x: number) => maze[x]
+                .map((_: never, y: number) => new Node(new Point2D(x, y), maze[x][y] === 'Wall')))
+                .flat();
+
+    // Advanced
+    t.snapshot(new JPS<Point2D>({dimensions, nodes})
         .search([1, 18], [30, 1], new ManhattanDistance()));
 });
