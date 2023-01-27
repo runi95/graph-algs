@@ -46,7 +46,10 @@ test('should output the randomly generated numbers in descending order', t => {
         const previous = Number.MAX_VALUE;
         let next = null;
         while ((next = pq.poll()) !== null) {
-            t.true(next <= previous, `expected ${next} to be less than or equal ${previous}`);
+            t.true(
+                next <= previous,
+                `expected ${next} to be less than or equal ${previous}`
+            );
         }
     }
 });

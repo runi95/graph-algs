@@ -7,8 +7,16 @@ import {ManhattanDistance} from '../src/heuristics/manhattanDistance';
 test('should find a valid 2D path from source to destination', t => {
     t.timeout(15000);
     const dimensions = [32, 20];
-    const adjMatrix2D = [...Array(dimensions[0])].map((_, x) => [...Array(dimensions[1])].map((_, y) => new Node<Point2D>(new Point2D(x, y), false))).flat();
+    const adjMatrix2D = [...Array(dimensions[0])]
+        .map((_, x) => [...Array(dimensions[1])]
+        .map((_, y) => new Node<Point2D>(new Point2D(x, y), false)))
+        .flat();
+    const graph = {
+        dimensions,
+        nodes: adjMatrix2D
+    };
 
     // Basic
-    t.snapshot(new JPS<Point2D>({dimensions, nodes: adjMatrix2D}).search([1, 18], [30, 1], new ManhattanDistance()));
+    t.snapshot(new JPS<Point2D>(graph)
+        .search([1, 18], [30, 1], new ManhattanDistance()));
 });
