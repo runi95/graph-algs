@@ -38,7 +38,8 @@ export class JPS<P extends Point> {
     if (parent) {
       const d = [];
       for (let i = 0; i < this.dimensions.length; i++) {
-        d.push((node.node.point.coords[i] - parent.node.point.coords[i]) / Math.max(Math.abs(node.node.point.coords[i] - parent.node.point.coords[i]), 1));
+        const dx = node.node.point.coords[i] - parent.node.point.coords[i];
+        d.push((dx) / Math.max(Math.abs(dx), 1));
       }
 
       for (let di = 0; di < d.length; di++) {
@@ -61,7 +62,10 @@ export class JPS<P extends Point> {
             }
           }
 
-          if (node.node.point.coords[di] + d[di] < this.dimensions[di] && node.node.point.coords[di] + d[di] >= 0) {
+          if (
+            node.node.point.coords[di] + d[di] < this.dimensions[di] &&
+            node.node.point.coords[di] + d[di] >= 0
+          ) {
             const n = this.graph[pointRef + (d[di] * dMul[di])];
             if (!n.node.isWall) {
               ret.push(n);
@@ -92,7 +96,11 @@ export class JPS<P extends Point> {
     return ret;
   }
 
-  private jump(neighbor: number[], current: AStarNode<P>, destination: AStarNode<P>): number[] | null {
+  private jump(
+    neighbor: number[],
+    current: AStarNode<P>,
+    destination: AStarNode<P>
+  ): number[] | null {
     if (!neighbor) return null;
 
     const d: number[] = [];
@@ -141,7 +149,11 @@ export class JPS<P extends Point> {
                 checkPointRef -= d[j] * dMul[j];
               }
 
-              if (checkPointRef < 0 || checkPointRef >= this.graph.length || this.graph[checkPointRef].node.isWall) {
+              if (
+                checkPointRef < 0 ||
+                checkPointRef >= this.graph.length ||
+                this.graph[checkPointRef].node.isWall
+              ) {
                 return n.node.point.coords;
               }
             }
@@ -156,7 +168,11 @@ export class JPS<P extends Point> {
                 checkPointRef -= d[j] * dMul[j];
               }
 
-              if (checkPointRef < 0 || checkPointRef >= this.graph.length || this.graph[checkPointRef].node.isWall) {
+              if (
+                checkPointRef < 0 ||
+                checkPointRef >= this.graph.length ||
+                this.graph[checkPointRef].node.isWall
+              ) {
                 return n.node.point.coords;
               }
             }
@@ -187,10 +203,17 @@ export class JPS<P extends Point> {
       throw new Error('Only horizontal and vertical movements are allowed');
     }
 
-    return this.jump(neighbor.map((v, i) => v + d[i]), this.graph[pointRef], destination);
+    return this.jump(
+      neighbor.map((v, i) => v + d[i]), this.graph[pointRef],
+      destination
+    );
   }
 
-  public search(source: number[], destination: number[], heuristic: Heuristics<P>) {
+  public search(
+    source: number[],
+    destination: number[],
+    heuristic: Heuristics<P>
+  ) {
     const openHeap = new PriorityQueue<AStarNode<P>>();
     let mul = 1;
     const dMul = [];
@@ -227,7 +250,8 @@ export class JPS<P extends Point> {
 
         path.push(source);
 
-        const visitedFilter = (node: AStarNode<P>) => node.visited && node !== currentNode;
+        const visitedFilter = 
+          (node: AStarNode<P>) => node.visited && node !== currentNode;
         const visited = this.graph
           .flat()
           .filter(visitedFilter)
@@ -322,4 +346,4 @@ export class JPS<P extends Point> {
 
     throw new Error('No path to destination');
   }
-};
+}

@@ -8,8 +8,8 @@ export class LPAStarNode<P extends Point> {
   public g: number;
   public rhs: number;
 
-  public visited: boolean = false;
-  public closed: boolean = false;
+  public visited = false;
+  public closed = false;
   public parent: LPAStarNode<P> | null = null;
 
   constructor(node: Node<P>) {
@@ -24,4 +24,4 @@ export class LPAStarNode<P extends Point> {
   public valueOf(): number {
     return this.g;
   }
-};
+}

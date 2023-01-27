@@ -4,11 +4,11 @@ import {Point} from '../point';
 export class AStarNode<P extends Point> {
   public readonly node: Node<P>;
 
-  public f: number = 0;
-  public g: number = 0;
-  public h: number = 0;
-  public visited: boolean = false;
-  public closed: boolean = false;
+  public f = 0;
+  public g = 0;
+  public h = 0;
+  public visited = false;
+  public closed = false;
   public parent: this | null = null;
 
   constructor(node: Node<P>) {
@@ -18,4 +18,4 @@ export class AStarNode<P extends Point> {
   public valueOf(): number {
     return this.h;
   }
-};
+}
