@@ -143,7 +143,7 @@ export class JPS<P extends Point> {
           if (neighbor[i] - 1 >= 0) {
             const n = this.graph[pointRef - dMul[i]];
             if (!n.node.isWall) {
-              let checkPointRef = pointRef;
+              let checkPointRef = pointRef - dMul[i];
               for (let j = 0; j < this.dimensions.length; j++) {
                 if (j === i) continue;
                 checkPointRef -= d[j] * dMul[j];
@@ -154,7 +154,7 @@ export class JPS<P extends Point> {
                 checkPointRef >= this.graph.length ||
                 this.graph[checkPointRef].node.isWall
               ) {
-                return n.node.point.coords;
+                return neighbor;
               }
             }
           }
@@ -162,7 +162,7 @@ export class JPS<P extends Point> {
           if (neighbor[i] + 1 < this.dimensions[i]) {
             const n = this.graph[pointRef + dMul[i]];
             if (!n.node.isWall) {
-              let checkPointRef = pointRef;
+              let checkPointRef = pointRef + dMul[i];
               for (let j = 0; j < this.dimensions.length; j++) {
                 if (j === i) continue;
                 checkPointRef -= d[j] * dMul[j];
@@ -173,7 +173,7 @@ export class JPS<P extends Point> {
                 checkPointRef >= this.graph.length ||
                 this.graph[checkPointRef].node.isWall
               ) {
-                return n.node.point.coords;
+                return neighbor;
               }
             }
           }
