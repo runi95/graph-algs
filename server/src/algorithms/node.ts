@@ -8,4 +8,4 @@ export class Node<P extends Point> {
         this.point = point;
         this.isWall = isWall;
     }
-};
+}

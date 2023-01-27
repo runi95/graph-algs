@@ -8,4 +8,4 @@ export class ManhattanDistance<P extends Point> implements Heuristics<P> {
     return a.distanceMatrix(b)
       .reduce((acc, curr) => acc + Math.abs(curr), 0);
   }
-};
+}

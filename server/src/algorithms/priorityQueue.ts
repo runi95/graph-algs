@@ -1,5 +1,5 @@
 export class PriorityQueue<T> {
-  private _size: number = 0;
+  private _size = 0;
   private _queue: T[] = [];
   private readonly comparator: (a: T, b: T) => number = (a: T, b: T) => {
     if (a > b) {
@@ -108,4 +108,4 @@ export class PriorityQueue<T> {
   get size(): number {
     return this._size;
   }
-};
+}

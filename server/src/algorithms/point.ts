@@ -18,4 +18,4 @@ export abstract class Point {
   public toString(): string {
     return `(${this.coords.join(', ')})`;
   }
-};
+}

@@ -18,7 +18,7 @@ export class OctileDistance<P extends Point> implements Heuristics<P> {
         if (dAbs > dMax) {
           dMax = dAbs;
           dMaxIndex = i;
-        };
+        }
 
         return dAbs;
       })
@@ -30,4 +30,4 @@ export class OctileDistance<P extends Point> implements Heuristics<P> {
         return acc + (this.f * curr);
       }, 0);
   }
-};
+}

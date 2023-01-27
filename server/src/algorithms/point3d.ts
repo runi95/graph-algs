@@ -22,4 +22,4 @@ export class Point3D extends Point {
   public override distanceMatrix(p: this): number[] {
     return [this.x - p.x, this.y - p.y, this.z - p.z];
   }
-};
+}

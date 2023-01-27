@@ -18,4 +18,4 @@ export class Point2D extends Point {
   public override distanceMatrix(p: this): number[] {
     return [this.x - p.x, this.y - p.y];
   }
-};
+}

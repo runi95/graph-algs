@@ -6,7 +6,8 @@ export class CanberraDistance<P extends Point> implements Heuristics<P> {
 
   public calculate(a: Point, b: Point): number {
     return a.distanceMatrix(b)
-      .map((d, i) => Math.abs(d) / (Math.abs(a.coords[i]) + Math.abs(b.coords[i])))
+      .map(
+        (d, i) => Math.abs(d) / (Math.abs(a.coords[i]) + Math.abs(b.coords[i])))
       .reduce((acc, curr) => acc + curr, 0);
   }
-};
+}
