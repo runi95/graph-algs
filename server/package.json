@@ -8,7 +8,7 @@
     "postbuild": "node copyAssets.js",
     "start": "node ./dist/src",
     "test": "ava",
-    "lint": "eslint src/*/**.js"
+    "lint": "eslint src/*/**.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
