@@ -2,6 +2,7 @@ import {PriorityQueue} from '../priorityQueue';
 import {AStarNode} from '../AStar/node';
 import {Graph} from '../graph';
 import {Point} from '../point';
+import {NoValidPathError} from '../noValidPathError';
 
 export class Dijkstra<P extends Point> {
   public static readonly label = 'Dijkstra';
@@ -164,6 +165,10 @@ export class Dijkstra<P extends Point> {
       }
     }
 
-    throw new Error('No path to destination');
+    const visited = this.graph
+      .flat()
+      .filter((node: AStarNode<P>) => node.visited)
+      .map(n => n.node.point.coords);
+    throw new NoValidPathError(visited);
   }
 }

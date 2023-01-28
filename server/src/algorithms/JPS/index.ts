@@ -4,6 +4,7 @@ import {OctileDistance} from '../../heuristics/octileDistance';
 import {Heuristics} from '../../heuristics/heuristicsInterface';
 import {Point} from '../point';
 import {Graph} from '../graph';
+import {NoValidPathError} from '../noValidPathError';
 
 const octileDistance = new OctileDistance();
 
@@ -344,6 +345,10 @@ export class JPS<P extends Point> {
       }
     }
 
-    throw new Error('No path to destination');
+    const visited = this.graph
+      .flat()
+      .filter((node: AStarNode<P>) => node.visited)
+      .map(n => n.node.point.coords);
+    throw new NoValidPathError(visited);
   }
 }

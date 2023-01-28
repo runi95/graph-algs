@@ -13,6 +13,7 @@ import {ManhattanDistance} from '../heuristics/manhattanDistance';
 import {CanberraDistance} from '../heuristics/canberraDistance';
 import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
 import {asyncHandler} from './asyncHandler';
+import {NoValidPathError} from '../algorithms/noValidPathError';
 
 export const router = Router();
 
@@ -49,10 +50,23 @@ router.post('/run', asyncHandler(async (req, res) => {
     dimensions: [32, 20],
     nodes: matrix.map((_: never, x: number) => matrix[x].map((_: never, y: number) => new Node(new Point2D(x, y), matrix[x][y] === 'Wall'))).flat()
   });
-  const data = alg.search([start.x, start.y], [goal.x, goal.y], h);
-  const executionTime = process.hrtime(startTime)[1] / 1000000;
 
-  return res.status(200).json({...data, executionTime});
+  try {
+    const data = alg.search([start.x, start.y], [goal.x, goal.y], h);
+    const executionTime = process.hrtime(startTime)[1] / 1000000;
+
+    return res.status(200).json({...data, executionTime});
+  } catch (err) {
+    if (err instanceof NoValidPathError) {
+      return res.status(200).json({
+        solution: [],
+        visited: err.visited,
+        executionTime: 0
+      });
+    } else {
+      throw err;
+    }
+  }
 }));
 
 router.get('/options', asyncHandler(async (_req, res) => {

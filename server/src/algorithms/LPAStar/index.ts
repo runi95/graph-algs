@@ -1,5 +1,6 @@
 import {Heuristics} from '../../heuristics/heuristicsInterface';
 import {Graph} from '../graph';
+import {NoValidPathError} from '../noValidPathError';
 import {Point} from '../point';
 import {PriorityQueue} from '../priorityQueue';
 import {LPAStarNode} from './node';
@@ -264,6 +265,10 @@ export class LPAStar<P extends Point> {
       return {solution: ret.reverse(), visited: visited};
     }
 
-    throw new Error('No path to destination');
+    const visited = this.graph
+      .flat()
+      .filter((node: LPAStarNode<P>) => node.visited && node !== startNode)
+      .map(n => n.node.point.coords);
+    throw new NoValidPathError(visited);
   }
 }

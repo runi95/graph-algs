@@ -1,5 +1,6 @@
 import {Heuristics} from '../../heuristics/heuristicsInterface';
 import {Graph} from '../graph';
+import {NoValidPathError} from '../noValidPathError';
 import {Point} from '../point';
 import {PriorityQueue} from '../priorityQueue';
 import {AStarNode} from './node';
@@ -171,6 +172,10 @@ export class AStar<P extends Point> {
       }
     }
 
-    throw new Error('No path to destination');
+    const visited = this.graph
+      .flat()
+      .filter((node: AStarNode<P>) => node.visited)
+      .map(n => n.node.point.coords);
+    throw new NoValidPathError(visited);
   }
 }
