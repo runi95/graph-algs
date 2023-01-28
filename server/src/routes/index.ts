@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import {Request, Response, Router} from 'express';
 import * as fs from 'fs-extra';
 import {templatesDir} from '../config/config';
 import {AStar} from '../algorithms/aStar';
@@ -12,6 +12,7 @@ import {OctileDistance} from '../heuristics/octileDistance';
 import {ManhattanDistance} from '../heuristics/manhattanDistance';
 import {CanberraDistance} from '../heuristics/canberraDistance';
 import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
+import {asyncHandler} from './asyncHandler';
 
 export const router = Router();
 
@@ -24,7 +25,7 @@ const heuristics = [
   ChebyshevDistance,
 ];
 
-router.post('/run', async (req, res) => {
+router.post('/run', asyncHandler(async (req: Request, res: Response) => {
   const {matrix, start, goal, algorithm, heuristic} = req.body;
 
   const selectedAlgorithm = algorithm.toLowerCase();
@@ -52,9 +53,9 @@ router.post('/run', async (req, res) => {
   const executionTime = process.hrtime(startTime)[1] / 1000000;
 
   return res.status(200).json({...data, executionTime});
-});
+}));
 
-router.get('/options', async (_req, res) => {
+router.get('/options', asyncHandler(async (_req: Request, res: Response) => {
   const mappedAlgorithms = algorithms.map(
     (algorithm) =>
     ({
@@ -77,4 +78,4 @@ router.get('/options', async (_req, res) => {
     heuristic: mappedHeuristics[0],
     templates: templates,
   });
-});
+}));
