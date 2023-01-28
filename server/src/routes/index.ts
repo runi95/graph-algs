@@ -1,4 +1,4 @@
-import {Request, Response, Router} from 'express';
+import {Router} from 'express';
 import * as fs from 'fs-extra';
 import {templatesDir} from '../config/config';
 import {AStar} from '../algorithms/aStar';
@@ -25,7 +25,7 @@ const heuristics = [
   ChebyshevDistance,
 ];
 
-router.post('/run', asyncHandler(async (req: Request, res: Response) => {
+router.post('/run', asyncHandler(async (req, res) => {
   const {matrix, start, goal, algorithm, heuristic} = req.body;
 
   const selectedAlgorithm = algorithm.toLowerCase();
@@ -55,7 +55,7 @@ router.post('/run', asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json({...data, executionTime});
 }));
 
-router.get('/options', asyncHandler(async (_req: Request, res: Response) => {
+router.get('/options', asyncHandler(async (_req, res) => {
   const mappedAlgorithms = algorithms.map(
     (algorithm) =>
     ({
