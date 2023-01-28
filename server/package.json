@@ -7,7 +7,7 @@
     "build": "tsc",
     "postbuild": "node copyAssets.js",
     "start": "node ./dist/src",
-    "start:watch": "nodemon -e ts --exec \"npm run build && npm run start\"",
+    "start:watch": "nodemon -w src -e ts --exec \"npm run build && npm run start\"",
     "test": "ava",
     "lint": "eslint src/**/*.ts"
   },
