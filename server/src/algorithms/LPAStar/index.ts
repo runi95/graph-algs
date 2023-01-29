@@ -29,7 +29,6 @@ export class LPAStar<P extends Point> {
       dMul.push(mul);
       mul *= this.dimensions[i];
     }
-    dMul.reverse();
 
     let pointRef = 0;
     for (let i = 0; i < this.dimensions.length; i++) {
@@ -49,7 +48,6 @@ export class LPAStar<P extends Point> {
       dMul.push(mul);
       mul *= this.dimensions[i];
     }
-    dMul.reverse();
 
     let pointRef = 0;
     for (let i = 0; i < this.dimensions.length; i++) {
@@ -139,7 +137,6 @@ export class LPAStar<P extends Point> {
       dMul.push(mul);
       mul *= this.dimensions[i];
     }
-    dMul.reverse();
 
     let sourcePointRef = 0;
     for (let i = 0; i < this.dimensions.length; i++) {
@@ -259,14 +256,12 @@ export class LPAStar<P extends Point> {
         node !== startNode &&
         node !== destinationNode;
       const visited = this.graph
-        .flat()
         .filter(visitedFilter)
         .map((n) => (n.node.point.coords));
       return {solution: ret.reverse(), visited: visited};
     }
 
     const visited = this.graph
-      .flat()
       .filter((node: LPAStarNode<P>) => node.visited && node !== startNode)
       .map(n => n.node.point.coords);
     throw new NoValidPathError(visited);

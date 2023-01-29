@@ -26,7 +26,6 @@ export class AStar<P extends Point> {
       dMul.push(mul);
       mul *= this.dimensions[i];
     }
-    dMul.reverse();
 
     let pointRef = 0;
     for (let i = 0; i < this.dimensions.length; i++) {
@@ -105,7 +104,6 @@ export class AStar<P extends Point> {
       dMul.push(mul);
       mul *= this.dimensions[i];
     }
-    dMul.reverse();
 
     let sourcePointRef = 0;
     for (let i = 0; i < this.dimensions.length; i++) {
@@ -134,7 +132,6 @@ export class AStar<P extends Point> {
         const visitedFilter = 
           (node: AStarNode<P>) => node.visited && node !== currentNode;
         const visited = this.graph
-          .flat()
           .filter(visitedFilter)
           .map(n => n.node.point.coords);
         return {solution: ret.reverse(), visited: visited};
@@ -173,7 +170,6 @@ export class AStar<P extends Point> {
     }
 
     const visited = this.graph
-      .flat()
       .filter((node: AStarNode<P>) => node.visited)
       .map(n => n.node.point.coords);
     throw new NoValidPathError(visited);

@@ -1,49 +1,55 @@
 /* eslint-disable react/no-unknown-property */
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
+import {DoubleSide, Vector3} from 'three';
+import {OrbitControls} from '@react-three/drei';
 import ControlPanel from './ControlPanel';
+import Tile from './Tile';
 import './App.css';
-import Grid from './Grid';
 
-const gridHeight = 20;
-const gridWidth = 32;
+const initialMatrixScale = 32;
 const initialStart = {
   x: 1,
-  y: gridHeight - 2,
+  y: 1,
+  z: 0,
 };
 const initialGoal = {
-  x: gridWidth - 2,
-  y: 1,
+  x: initialMatrixScale - 2,
+  y: initialMatrixScale - 2,
+  z: 0,
 };
 
 function App() {
   const debouncedSearch = useCallback(
-      debounce((options) => search(options), 500),
+      debounce((options, graph) => search(options, graph), 500),
       [],
   );
+  const highlightMeshRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [activeState, setActiveState] = useState(false);
   const [pathLength, setPathLength] = useState('');
   const [visitedNodes, setVisitedNodes] = useState('');
   const [executionTime, setExecutionTime] = useState('');
   const [options, setOptions] = useState(null);
-  const [previousElement, setPreviousElement] = useState(null);
-  const [activeState, setActiveState] = useState(false);
   const [graph, setGraph] = useState({
     start: initialStart,
     goal: initialGoal,
-    matrix: [...Array(gridWidth)]
-        .map((_, x) => [...Array(gridHeight)]
-            .map((_, y) => {
-              if (x === initialStart.x && y === initialStart.y) {
-                return 'Start';
-              }
+    matrixScale: initialMatrixScale,
+    matrix: [...Array(initialMatrixScale * initialMatrixScale)]
+        .map((_, i) => {
+          const x = i % initialMatrixScale;
+          const y = Math.floor(i / initialMatrixScale);
+          if (x === initialStart.x && y === initialStart.y) {
+            return 'Start';
+          }
 
-              if (x === initialGoal.x && y === initialGoal.y) {
-                return 'Goal';
-              }
+          if (x === initialGoal.x && y === initialGoal.y) {
+            return 'Goal';
+          }
 
-              return '';
-            })),
+          return '';
+        }),
   });
 
   useEffect(() => {
@@ -59,17 +65,14 @@ function App() {
           .catch((err) => console.error(err));
     } else {
       if (options.algorithm && options.heuristic) {
-        search(options);
+        search(options, graph);
       } else {
         const newMatrix = [...graph.matrix];
 
         // Reset visited and solution states
-        for (let x = 0; x < newMatrix.length; x++) {
-          for (let y = 0; y < newMatrix[x].length; y++) {
-            const tileState = newMatrix[x][y];
-            if (tileState === 'Visited' || tileState === 'Solution') {
-              newMatrix[x][y] = '';
-            }
+        for (let i = 0; i < graph.matrixScale * graph.matrixScale; i++) {
+          if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
+            newMatrix[i] = '';
           }
         }
 
@@ -78,7 +81,23 @@ function App() {
     }
   }, [options]);
 
-  function search(options) {
+  function graphToCanvasPosition(x, y, z) {
+    return new Vector3(
+        0.5 * graph.matrixScale - x - 0.5,
+        y - 0.5 * graph.matrixScale + 0.5,
+        z - 0.25,
+    );
+  }
+
+  function canvasToGraphPosition(x, y, z) {
+    return new Vector3(
+        0.5 * graph.matrixScale - x - 0.5,
+        y + 0.5 * graph.matrixScale - 0.5,
+        z + 0.25,
+    );
+  }
+
+  function search(options, graph) {
     const data = JSON.stringify({
       ...graph,
       algorithm: options.algorithm.value,
@@ -100,12 +119,9 @@ function App() {
           const newMatrix = [...graph.matrix];
 
           // Reset visited and solution states
-          for (let x = 0; x < newMatrix.length; x++) {
-            for (let y = 0; y < newMatrix[x].length; y++) {
-              const tileState = newMatrix[x][y];
-              if (tileState === 'Visited' || tileState === 'Solution') {
-                newMatrix[x][y] = '';
-              }
+          for (let i = 0; i < graph.matrixScale * graph.matrixScale; i++) {
+            if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
+              newMatrix[i] = '';
             }
           }
 
@@ -116,11 +132,11 @@ function App() {
           setExecutionTime(`${executionTime.toFixed(2)}ms`);
 
           visited.forEach((p) => {
-            newMatrix[p[0]][p[1]] = 'Visited';
+            newMatrix[p[0] + graph.matrixScale * p[1]] = 'Visited';
           });
 
           solution.forEach((p) => {
-            newMatrix[p[0]][p[1]] = 'Solution';
+            newMatrix[p[0] + graph.matrixScale * p[1]] = 'Solution';
           });
 
           setGraph({...graph, matrix: newMatrix});
@@ -130,67 +146,94 @@ function App() {
 
   const updateNode = (x, y, newNodeState) => {
     const newMatrix = [...graph.matrix];
-    newMatrix[x][y] = newNodeState;
+    newMatrix[x + graph.matrixScale * y] = newNodeState;
     updateGraph(newMatrix);
   };
 
   const updateGraph = (newMatrix) => {
-    setGraph({...graph, matrix: newMatrix});
-    debouncedSearch(options);
+    const newGraph = {...graph, matrix: newMatrix};
+    setGraph(newGraph);
+    debouncedSearch(options, newGraph);
   };
 
   return (
     <div className='App'>
       <div style={{width: 1377}}>
-        <Canvas className='canvas' shadows onMouseDown={(mouseEvent) => {
-          if (mouseEvent.buttons !== 1) return;
+        <Canvas ref={canvasRef} camera={{
+          fov: 45,
+          aspect: 1377 / 861,
+          near: 0.1,
+          far: 1000,
+          position: [0, 0, -1.25 * graph.matrixScale],
+        }} className='canvas' shadows >
+          <mesh
+            name={'ground'}
+            onPointerMove={(e) => {
+              e.intersections.forEach((intersect) => {
+                const highlightPos = new Vector3()
+                    .copy(intersect.point)
+                    .floor()
+                    .addScalar(0.5);
+                highlightMeshRef.current.position
+                    .set(highlightPos.x, highlightPos.y, 0);
+              });
 
-          const {clientX, clientY} = mouseEvent;
-          const {left, top} = mouseEvent.target.getBoundingClientRect();
-          const dx = (clientX - left);
-          const dy = (clientY - top);
-          const canvasWidth = mouseEvent.target.width;
-          const canvasHeight = mouseEvent.target.height;
-          const x = Math.floor(dx / (canvasWidth / gridWidth));
-          const y = Math.floor(dy / (canvasHeight / gridHeight));
-
-          const currentNodeState = graph.matrix[x][y];
-          if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
-
-          if (currentNodeState === 'Wall') {
-            setActiveState(false);
-            updateNode(x, y, '');
-          } else {
-            setActiveState(true);
-            updateNode(x, y, 'Wall');
-          }
-        }} onMouseMove={(mouseEvent) => {
-          if (mouseEvent.buttons !== 1) return;
-
-          const {clientX, clientY} = mouseEvent;
-          const {left, top} = mouseEvent.target.getBoundingClientRect();
-          const dx = (clientX - left);
-          const dy = (clientY - top);
-          const canvasWidth = mouseEvent.target.width;
-          const canvasHeight = mouseEvent.target.height;
-          const x = Math.floor(dx / Math.floor(canvasWidth / gridWidth));
-          const y = Math.floor(dy / Math.floor(canvasHeight / gridHeight));
-
-          if (x === previousElement?.x && y === previousElement?.y) return;
-          setPreviousElement({x, y});
-
-          const currentNodeState = graph.matrix[x][y];
-          if (!activeState && currentNodeState !== 'Wall') return;
-          if (activeState && currentNodeState === 'Wall') return;
-          if (currentNodeState === 'Start' || currentNodeState === 'Goal') return;
-
-          updateNode(x, y, activeState ? 'Wall' : '');
-        }} >
-          <ambientLight intensity={1} />
-          <directionalLight position={[0, 0, 100]} intensity={1} />
-          <perspectiveCamera makeDefault position={[0, 0, -10.6]}>
-            <Grid matrix={graph.matrix} height={gridHeight} width={gridWidth} />
-          </perspectiveCamera>
+              if (e.buttons === 1) {
+                const {x, y, z} = highlightMeshRef.current.position;
+                const graphPosition = canvasToGraphPosition(x, y, z);
+                const nodeState = graph.matrix[
+                    graphPosition.x + graph.matrixScale * graphPosition.y
+                ];
+                if (nodeState === 'Start' || nodeState === 'Goal') return;
+                if (activeState && nodeState !== 'Wall') {
+                  updateNode(graphPosition.x, graphPosition.y, 'Wall');
+                } else if (!activeState && nodeState === 'Wall') {
+                  updateNode(graphPosition.x, graphPosition.y, '');
+                }
+              }
+            }}
+            onPointerDown={(e) => {
+              if (e.buttons !== 1) return;
+              const {x, y, z} = highlightMeshRef.current.position;
+              const graphPosition = canvasToGraphPosition(x, y, z);
+              const nodeState = graph.matrix[
+                  graphPosition.x + graph.matrixScale * graphPosition.y
+              ];
+              if (nodeState === 'Start' || nodeState === 'Goal') return;
+              if (nodeState === 'Wall') {
+                setActiveState(false);
+                updateNode(graphPosition.x, graphPosition.y, '');
+              } else {
+                setActiveState(true);
+                updateNode(graphPosition.x, graphPosition.y, 'Wall');
+              }
+            }}
+          >
+            <planeGeometry args={[graph.matrixScale, graph.matrixScale]} />
+            <meshBasicMaterial side={DoubleSide} visible={false} />
+          </mesh>
+          <gridHelper
+            rotation={[-Math.PI / 2, 0, 0]}
+            args={[graph.matrixScale, graph.matrixScale]}
+          />
+          <mesh
+            ref={highlightMeshRef}
+            position={[0.5, 0, 0.5]}
+          >
+            <planeGeometry args={[1, 1]} />
+            <meshBasicMaterial side={DoubleSide} />
+          </mesh>
+          {graph.matrix.map((type, i) => {
+            const x = i % graph.matrixScale;
+            const y = Math.floor(i / graph.matrixScale);
+            const canvasPosition = graphToCanvasPosition(x, y, 0);
+            return <Tile
+              key={`tile-${i}`}
+              type={type}
+              position={canvasPosition}
+            />;
+          })}
+          <OrbitControls enableRotate={false} enablePan={false} />
         </Canvas>
       </div>
       <ControlPanel
@@ -213,11 +256,12 @@ function App() {
                 return response.json();
               })
               .then((data) => {
-                const newMatrix = [...graph.matrix];
-                data.forEach((_, x) =>
-                  data[x].forEach((_, y) =>
-                    newMatrix[x][y] = data[x][y]));
-                updateGraph(newMatrix);
+                const newGraph = {
+                  ...graph,
+                  ...data,
+                };
+                setGraph(newGraph);
+                debouncedSearch(options, newGraph);
               })
               .catch((err) => console.error(err));
         }}

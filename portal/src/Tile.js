@@ -1,20 +1,42 @@
-// TODO: Fix lint rules
-/* eslint-disable max-len */
-/* eslint-disable react/no-unknown-property */
 import React from 'react';
 import PropTypes from 'prop-types';
+import {DoubleSide} from 'three';
+
+const typeToColor = (type) => {
+  switch (type) {
+    case 'Start':
+      return '#afa';
+    case 'Goal':
+      return '#aaf';
+    case 'Solution':
+      return '#49f';
+    case 'Visited':
+      return '#324c75';
+    case 'Wall':
+    case '':
+    default:
+      return '#aaa';
+  }
+};
 
 export default function Tile(props) {
   return (
-    <mesh scale={1} position={props.position}>
-      <boxGeometry args={[1.1, 1.1, 0]} attach='geometry' />
-      <meshLambertMaterial attach='material' color={props.color} visible={props.visible} />
+    <mesh position={props.position}>
+      <boxGeometry args={[0.8, 0.8, 0.5]} />
+      <meshBasicMaterial
+        color={typeToColor(props.type)}
+        side={DoubleSide}
+        visible={props.type !== ''}
+      />
     </mesh>
   );
 }
 
 Tile.propTypes = {
-  color: PropTypes.string,
-  visible: PropTypes.bool.isRequired,
-  position: PropTypes.arrayOf(PropTypes.number).isRequired,
+  type: PropTypes.string.isRequired,
+  position: PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+    z: PropTypes.number.isRequired,
+  }).isRequired,
 };

@@ -27,7 +27,7 @@ const heuristics = [
 ];
 
 router.post('/run', asyncHandler(async (req, res) => {
-  const {matrix, start, goal, algorithm, heuristic} = req.body;
+  const {matrix, matrixScale, start, goal, algorithm, heuristic} = req.body;
 
   const selectedAlgorithm = algorithm.toLowerCase();
   const selectedHeuristic = heuristic.toLowerCase();
@@ -46,9 +46,19 @@ router.post('/run', asyncHandler(async (req, res) => {
 
   const h = new Heuristic();
   const startTime = process.hrtime();
+  fs.writeFileSync('./Divided.json', JSON.stringify({
+    matrixScale,
+    start,
+    goal,
+    matrix,
+  }, null, 2));
   const alg = new Algorithm<Point2D>({
-    dimensions: [32, 20],
-    nodes: matrix.map((_: never, x: number) => matrix[x].map((_: never, y: number) => new Node(new Point2D(x, y), matrix[x][y] === 'Wall'))).flat()
+    dimensions: [matrixScale, matrixScale],
+    nodes: matrix.map((node: never, i: number) => {
+      const x = i % matrixScale;
+      const y = Math.floor(i / matrixScale);
+      return new Node(new Point2D(x, y), node === 'Wall');
+    })
   });
 
   try {

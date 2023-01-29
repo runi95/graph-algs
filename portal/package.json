@@ -10,6 +10,7 @@
     "lint": "eslint src/*/**.js"
   },
   "dependencies": {
+    "@react-three/drei": "^9.56.4",
     "@react-three/fiber": "^8.10.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
