@@ -49,10 +49,14 @@ function App() {
   useEffect(() => {
     if (options === null) {
       fetch('http://localhost:8080/api/options')
-          .then((response) => response.json())
+          .then((response) => {
+            if (!response.ok) throw new Error('Network response not OK');
+            return response.json();
+          })
           .then((data) => {
             setOptions(data);
-          });
+          })
+          .catch((err) => console.error(err));
     } else {
       if (options.algorithm && options.heuristic) {
         search(options);
@@ -88,7 +92,10 @@ function App() {
       },
       body: data,
     })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) throw new Error('Network response not OK');
+          return response.json();
+        })
         .then((data) => {
           const newMatrix = [...graph.matrix];
 
@@ -117,7 +124,8 @@ function App() {
           });
 
           setGraph({...graph, matrix: newMatrix});
-        });
+        })
+        .catch((err) => console.error(err));
   }
 
   const updateNode = (x, y, newNodeState) => {
@@ -200,14 +208,18 @@ function App() {
           fetch(`http://localhost:8080/templates/${template}.json`, {
             method: 'GET',
           })
-              .then((response) => response.json())
+              .then((response) => {
+                if (!response.ok) throw new Error('Network response not OK');
+                return response.json();
+              })
               .then((data) => {
                 const newMatrix = [...graph.matrix];
                 data.forEach((_, x) =>
                   data[x].forEach((_, y) =>
                     newMatrix[x][y] = data[x][y]));
                 updateGraph(newMatrix);
-              });
+              })
+              .catch((err) => console.error(err));
         }}
       />
     </div>
