@@ -46,12 +46,6 @@ router.post('/run', asyncHandler(async (req, res) => {
 
   const h = new Heuristic();
   const startTime = process.hrtime();
-  fs.writeFileSync('./Divided.json', JSON.stringify({
-    matrixScale,
-    start,
-    goal,
-    matrix,
-  }, null, 2));
   const alg = new Algorithm<Point2D>({
     dimensions: [matrixScale, matrixScale],
     nodes: matrix.map((node: never, i: number) => {
