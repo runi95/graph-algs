@@ -5,8 +5,8 @@ import './RadioButton.css';
 function RadioButton(props) {
   return (
     <div>
-      <input id={props.label} type="radio" checked={props.checked} disabled={props.disabled} onChange={props.onChange} />
-      <label htmlFor={props.label}>{props.label}</label>
+      <input id={props.label} className='radio-button-input' type="radio" checked={props.checked} disabled={props.disabled} onChange={props.onChange} />
+      <label className='radio-button-label' htmlFor={props.label}>{props.label}</label>
     </div>
   );
 };

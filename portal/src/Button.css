@@ -1,0 +1,10 @@
+.styled-button {
+    cursor: pointer;
+    height: 30px;
+    min-width: 60px;
+    border: 2px solid #306bb4;
+    border-radius: 8px;
+    background-color: #49f;
+    font-weight: bold;
+    padding: 5px;
+}

@@ -2,17 +2,24 @@ import React from 'react';
 import RadioButton from './RadioButton';
 import PropTypes from 'prop-types';
 import './ControlPanel.css';
+import Button from './Button';
 
 function ControlPanel(props) {
   return (
-    <div className='ControlPanel'>
-      <h1>Information</h1>
-      <p>Path Length: {props.pathLength}</p>
-      <p>Visited nodes: {props.visitedNodes}</p>
-      <p>Time: {props.executionTime}</p>
-      <h1>Options</h1>
-      {
+    <div id='ControlPanel' hidden={props.isHidden}>
+      <div className="bg"></div>
+      <div id='PanelContainer' tabIndex={0}>
+        <div style={{
+          position: 'fixed',
+          top: 15,
+          right: 15,
+        }}>
+          <Button onClick={() => {
+            props?.onPanelClose();
+          }} text='Close' />
+        </div>
         <div>
+          <h1>Options</h1>
           <p>Algorithm:</p>
           {props?.algorithmOptions?.map((algorithm) =>
             <RadioButton
@@ -39,15 +46,14 @@ function ControlPanel(props) {
               onChange={() => props.setTemplate(template)}
             />)}
         </div>
-      }
+      </div>
     </div>
   );
 };
 
 ControlPanel.propTypes = {
-  pathLength: PropTypes.string,
-  visitedNodes: PropTypes.string,
-  executionTime: PropTypes.string,
+  isHidden: PropTypes.bool.isRequired,
+  onPanelClose: PropTypes.func,
   algorithmOptions: PropTypes.array,
   setAlgorithm: PropTypes.func.isRequired,
   algorithm: PropTypes.object,
