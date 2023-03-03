@@ -22,3 +22,8 @@ rules:
       ignoreComments: true
   require-jsdoc: 0
   react/no-unknown-property: off
+  no-unused-vars:
+    - error
+    - argsIgnorePattern: ^_
+      varsIgnorePattern: ^_
+      caughtErrorsIgnorePattern: ^_
