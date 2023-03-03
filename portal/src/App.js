@@ -7,8 +7,8 @@ import {OrbitControls} from '@react-three/drei';
 import ControlPanel from './ControlPanel';
 import Tile from './Tile';
 import './App.css';
-import Button from './Button';
 import CameraButton from './CameraButton.js';
+import GearButton from './GearButton.js';
 
 const initialMatrixScale = 32;
 const initialStart = {
@@ -277,9 +277,11 @@ function App() {
           }}>
             <CameraButton isActive={editState} />
           </div>
-          <Button onClick={() => {
+          <div style={{height: 32, width: 32, cursor: 'pointer'}} onClick={() => {
             setControlPanelVisibilityState(true);
-          }} text='Settings' />
+          }}>
+            <GearButton />
+          </div>
         </div>
         <div style={{
           pointerEvents: 'none',
