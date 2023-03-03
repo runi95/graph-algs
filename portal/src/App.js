@@ -7,8 +7,8 @@ import {OrbitControls} from '@react-three/drei';
 import ControlPanel from './ControlPanel';
 import Tile from './Tile';
 import './App.css';
-import ToggleButton from './ToggleButton';
 import Button from './Button';
+import CameraButton from './CameraButton.js';
 
 const initialMatrixScale = 32;
 const initialStart = {
@@ -272,9 +272,11 @@ function App() {
           textAlign: 'right',
           justifyContent: 'space-evenly',
         }}>
-          <ToggleButton defaultChecked={editState} onChange={(e) => {
-            setEditState(e.target.checked);
-          }} />
+          <div style={{height: 32, width: 32, cursor: 'pointer'}} onClick={() => {
+            setEditState(!editState);
+          }}>
+            <CameraButton isActive={editState} />
+          </div>
           <Button onClick={() => {
             setControlPanelVisibilityState(true);
           }} text='Settings' />
