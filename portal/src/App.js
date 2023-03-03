@@ -264,9 +264,6 @@ function App() {
           ref={orbitControlsRef}
           enableRotate={!editState}
           enablePan={!editState}
-          onClick={(e) => {
-            console.log(e);
-          }}
         />
       </Canvas>
       <div className='information-panel'>
