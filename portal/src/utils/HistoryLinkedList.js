@@ -29,11 +29,11 @@ export class HistoryLinkedList {
       return null;
     }
 
-    this.#current = this.#current.prev;
-
     if (c.prev === null) {
       return null;
     }
+
+    this.#current = this.#current.prev;
 
     return c.prev.item;
   }
