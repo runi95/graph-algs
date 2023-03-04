@@ -264,13 +264,14 @@ function App() {
           display: 'flex',
           textAlign: 'right',
           justifyContent: 'space-evenly',
+          gap: 10,
         }}>
-          <div style={{height: 32, width: 32, cursor: 'pointer'}} onClick={() => {
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             setEditState(!editState);
           }}>
             <CameraButton isActive={editState} />
           </div>
-          <div style={{height: 32, width: 32, cursor: 'pointer'}} onClick={() => {
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             setControlPanelVisibilityState(true);
           }}>
             <GearButton />
