@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Gear(_props) {
+function GearButton(_props) {
   return (
     <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 0 512 512" enableBackground="new 0 0 512 512" xmlSpace="preserve">
       <g color="#555555">
@@ -10,4 +10,4 @@ function Gear(_props) {
   );
 }
 
-export default Gear;
+export default GearButton;
