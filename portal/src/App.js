@@ -36,9 +36,6 @@ function App() {
     controlPanelVisibilityState,
     setControlPanelVisibilityState,
   ] = useState(false);
-  const [pathLength, setPathLength] = useState('');
-  const [visitedNodes, setVisitedNodes] = useState('');
-  const [executionTime, setExecutionTime] = useState('');
   const [options, setOptions] = useState(null);
   const [graph, setGraph] = useState({
     start: initialStart,
@@ -133,11 +130,7 @@ function App() {
             }
           }
 
-          const {solution, visited, executionTime} = data;
-
-          setPathLength(solution.length.toString());
-          setVisitedNodes((solution.length + visited.length).toString());
-          setExecutionTime(`${executionTime.toFixed(2)}ms`);
+          const {solution, visited} = data;
 
           visited.forEach((p) => {
             newMatrix[p[0] + graph.matrixScale * p[1]] = 'Visited';
@@ -282,19 +275,6 @@ function App() {
           }}>
             <GearButton />
           </div>
-        </div>
-        <div style={{
-          pointerEvents: 'none',
-          marginTop: 15,
-          opacity: 0.5,
-          fontFamily: 'monospace',
-          fontSize: 'larger',
-          fontWeight: 700,
-          textShadow: '-1px -1px 2px #000, 3px -1px 2px #000, -1px 1px 2px #000, 1px 1px 2px #000',
-        }}>
-          <p style={{margin: 0}}>Path Length: {pathLength}</p>
-          <p style={{margin: 0}}>Visited nodes: {visitedNodes}</p>
-          <p style={{margin: 0}}>Time: {executionTime}</p>
         </div>
       </div>
       <ControlPanel
