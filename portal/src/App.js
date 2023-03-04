@@ -9,6 +9,9 @@ import Tile from './Tile';
 import './App.css';
 import CameraButton from './CameraButton.js';
 import GearButton from './GearButton.js';
+import UndoButton from './UndoButton.js';
+import RedoButton from './RedoButton.js';
+import {HistoryLinkedList} from './utils/HistoryLinkedList';
 
 const initialMatrixScale = 32;
 const initialStart = {
@@ -21,6 +24,8 @@ const initialGoal = {
   y: initialMatrixScale - 2,
   z: 0,
 };
+
+const graphHistoryLinkedList = new HistoryLinkedList();
 
 function App() {
   const debouncedSearch = useCallback(
@@ -140,6 +145,7 @@ function App() {
             newMatrix[p[0] + graph.matrixScale * p[1]] = 'Solution';
           });
 
+          graphHistoryLinkedList.add(newMatrix);
           setGraph({...graph, matrix: newMatrix});
         })
         .catch((err) => console.error(err));
@@ -155,6 +161,20 @@ function App() {
     const newGraph = {...graph, matrix: newMatrix};
     setGraph(newGraph);
     debouncedSearch(options, newGraph);
+  };
+
+  const undo = () => {
+    const prev = graphHistoryLinkedList.undo();
+    if (prev !== null) {
+      setGraph({...graph, matrix: prev});
+    }
+  };
+
+  const redo = () => {
+    const next = graphHistoryLinkedList.redo();
+    if (next !== null) {
+      setGraph({...graph, matrix: next});
+    }
   };
 
   return (
@@ -266,6 +286,16 @@ function App() {
           justifyContent: 'space-evenly',
           gap: 10,
         }}>
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            undo();
+          }}>
+            <UndoButton />
+          </div>
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            redo();
+          }}>
+            <RedoButton />
+          </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             setEditState(!editState);
           }}>
