@@ -7,7 +7,7 @@ extends:
 parserOptions:
   ecmaFeatures:
     jsx: true
-  ecmaVersion: 12
+  ecmaVersion: 14
   sourceType: module
 plugins:
   - react
