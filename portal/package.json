@@ -7,7 +7,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint src/*/**.js"
+    "lint": "eslint --fix --ext .ts,.tsx ./src"
   },
   "dependencies": {
     "@react-three/drei": "^9.57.0",
@@ -20,7 +20,6 @@
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
     "three": "^0.150.1",
-    "typescript": "^4.9.5",
     "web-vitals": "^3.1.1"
   },
   "devDependencies": {
@@ -30,14 +29,17 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/three": "^0.149.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "eslint": "^8.35.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-react": "^7.32.2"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.32.2",
+    "typescript": "^4.9.5"
   },
   "browserslist": {
     "production": [

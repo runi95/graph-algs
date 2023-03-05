@@ -1,5 +1,4 @@
-import {Vector3} from '@react-three/fiber';
-import React from 'react';
+import {type Vector3} from '@react-three/fiber';
 import {DoubleSide} from 'three';
 
 const typeToColor = (type: string) => {
@@ -20,8 +19,8 @@ const typeToColor = (type: string) => {
 };
 
 interface TileProps {
-    type: string;
-    position: Vector3;
+  type: string;
+  position: Vector3;
 }
 
 export default function Tile(props: TileProps) {

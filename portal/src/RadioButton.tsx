@@ -1,4 +1,3 @@
-import React from 'react';
 import './RadioButton.css';
 
 interface RadioButtonProps {

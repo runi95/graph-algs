@@ -1,19 +1,18 @@
-import React from 'react';
 import RadioButton from './RadioButton';
 import './ControlPanel.css';
 import Button from './Button';
 
 interface ControlPanelProps {
-    isHidden: boolean;
-    onPanelClose: () => void;
-    algorithmOptions?: any[];
-    setAlgorithm: (algorithm: any) => void;
-    algorithm: any;
-    heuristicOptions?: any[];
-    setHeuristic: (heuristic: any) => void;
-    heuristic: any;
-    templates?: any[];
-    setTemplate: (template: any) => void;
+  isHidden: boolean;
+  onPanelClose: () => void;
+  algorithmOptions?: any[];
+  setAlgorithm: (algorithm: any) => void;
+  algorithm: any;
+  heuristicOptions?: any[];
+  setHeuristic: (heuristic: any) => void;
+  heuristic: any;
+  templates?: any[];
+  setTemplate: (template: any) => void;
 }
 
 function ControlPanel(props: ControlPanelProps) {
@@ -24,7 +23,7 @@ function ControlPanel(props: ControlPanelProps) {
         <div style={{
           position: 'fixed',
           top: 15,
-          right: 15,
+          right: 15
         }}>
           <Button onClick={() => {
             props?.onPanelClose();
@@ -38,7 +37,7 @@ function ControlPanel(props: ControlPanelProps) {
               key={algorithm.value}
               label={algorithm.label}
               checked={algorithm.value === props.algorithm.value}
-              onChange={() => props.setAlgorithm(algorithm)}
+              onChange={() => { props.setAlgorithm(algorithm); }}
             />)}
           <p>Heuristic:</p>
           {props?.heuristicOptions?.map((heuristic) =>
@@ -47,7 +46,7 @@ function ControlPanel(props: ControlPanelProps) {
               disabled={props?.algorithm?.usesHeuristics !== true}
               label={heuristic.label}
               checked={heuristic.value === props.heuristic.value}
-              onChange={() => props.setHeuristic(heuristic)}
+              onChange={() => { props.setHeuristic(heuristic); }}
             />)}
           <p>Templates:</p>
           {props?.templates?.map((template) =>
@@ -55,7 +54,7 @@ function ControlPanel(props: ControlPanelProps) {
               key={template}
               label={template}
               checked={false}
-              onChange={() => props.setTemplate(template)}
+              onChange={() => { props.setTemplate(template); }}
             />)}
         </div>
       </div>

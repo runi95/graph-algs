@@ -3,12 +3,12 @@ env:
   es2021: true
 extends:
   - plugin:react/recommended
-  - google
+  - standard-with-typescript
 parserOptions:
-  ecmaFeatures:
-    jsx: true
-  ecmaVersion: 14
+  ecmaVersion: latest
   sourceType: module
+  project:
+    - ./tsconfig.json
 plugins:
   - react
 settings:
@@ -21,7 +21,26 @@ rules:
       ignoreTrailingComments: true
       ignoreComments: true
   require-jsdoc: 0
+  react/react-in-jsx-scope: off
   react/no-unknown-property: off
+  '@typescript-eslint/explicit-function-return-type': off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/strict-boolean-expressions': off
+  '@typescript-eslint/semi':
+    - error
+    - always
+  '@typescript-eslint/object-curly-spacing':
+    - error
+    - never
+  '@typescript-eslint/member-delimiter-style':
+    - error
+    - singleline:
+        delimiter: semi
+  '@typescript-eslint/space-before-function-paren':
+    - warn
+    - anonymous: never
+      named: never
+      asyncArrow: never
   no-unused-vars:
     - error
     - argsIgnorePattern: ^_
