@@ -1,7 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-function Camera(props) {
+function CameraButton(props: {isActive: boolean}) {
   return (
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 512 512" xmlSpace="preserve">
       <g color={props.isActive ? '#555' : '#48c'}>
@@ -13,8 +12,4 @@ function Camera(props) {
   );
 }
 
-Camera.propTypes = {
-  isActive: PropTypes.bool.isRequired,
-};
-
-export default Camera;
+export default CameraButton;

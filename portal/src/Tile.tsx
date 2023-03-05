@@ -1,8 +1,8 @@
+import {Vector3} from '@react-three/fiber';
 import React from 'react';
-import PropTypes from 'prop-types';
 import {DoubleSide} from 'three';
 
-const typeToColor = (type) => {
+const typeToColor = (type: string) => {
   switch (type) {
     case 'Start':
       return '#afa';
@@ -19,7 +19,12 @@ const typeToColor = (type) => {
   }
 };
 
-export default function Tile(props) {
+interface TileProps {
+    type: string;
+    position: Vector3;
+}
+
+export default function Tile(props: TileProps) {
   return (
     <mesh position={props.position}>
       <boxGeometry args={[0.8, 0.8, 0.5]} />
@@ -31,12 +36,3 @@ export default function Tile(props) {
     </mesh>
   );
 }
-
-Tile.propTypes = {
-  type: PropTypes.string.isRequired,
-  position: PropTypes.shape({
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-    z: PropTypes.number.isRequired,
-  }).isRequired,
-};

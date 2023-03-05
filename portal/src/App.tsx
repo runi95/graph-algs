@@ -2,16 +2,55 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
-import {DoubleSide, Vector3} from 'three';
+import {DoubleSide, Vector3, Mesh} from 'three';
 import {OrbitControls} from '@react-three/drei';
+import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
 import Tile from './Tile';
 import './App.css';
-import CameraButton from './CameraButton.js';
-import GearButton from './GearButton.js';
-import UndoButton from './UndoButton.js';
-import RedoButton from './RedoButton.js';
+import CameraButton from './buttons/CameraButton';
+import GearButton from './buttons/GearButton';
+import UndoButton from './buttons/UndoButton';
+import RedoButton from './buttons/RedoButton';
 import {HistoryLinkedList} from './utils/HistoryLinkedList';
+
+interface Algorithm {
+  label: string;
+  value: string;
+  usesHeuristics: boolean;
+}
+
+interface Heuristic {
+  label: string;
+  value: string;
+}
+
+interface Options {
+  algorithms: Algorithm[];
+  algorithm: Algorithm;
+  heuristics: Heuristic[];
+  heuristic: Heuristic;
+  templates: string[];
+}
+
+interface GraphVector {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface Graph {
+  start: GraphVector;
+  goal: GraphVector;
+  matrixScale: number;
+  matrix: string[];
+}
+
+interface RunResponse {
+  solution: number[][];
+  visited: number[][];
+  executionTime: number;
+}
 
 const initialMatrixScale = 32;
 const initialStart = {
@@ -25,24 +64,24 @@ const initialGoal = {
   z: 0,
 };
 
-const graphHistoryLinkedList = new HistoryLinkedList();
+const graphHistoryLinkedList = new HistoryLinkedList<string[]>();
 
 function App() {
-  const debouncedSearch = useCallback(
+  const debouncedSearch = useCallback((options: Options, graph: Graph) => 
       debounce((options, graph) => search(options, graph), 500),
       [],
   );
-  const highlightMeshRef = useRef(null);
-  const canvasRef = useRef(null);
-  const orbitControlsRef = useRef(null);
+  const highlightMeshRef = useRef<Mesh>(null!);
+  const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
   const [activeState, setActiveState] = useState(false);
   const [editState, setEditState] = useState(true);
   const [
     controlPanelVisibilityState,
     setControlPanelVisibilityState,
   ] = useState(false);
-  const [options, setOptions] = useState(null);
-  const [graph, setGraph] = useState({
+  const [options, setOptions] = useState<Options>(null!);
+  const [graph, setGraph] = useState<Graph>({
     start: initialStart,
     goal: initialGoal,
     matrixScale: initialMatrixScale,
@@ -91,7 +130,7 @@ function App() {
     }
   }, [options]);
 
-  function graphToCanvasPosition(x, y, z) {
+  function graphToCanvasPosition(x: number, y: number, z: number) {
     return new Vector3(
         0.5 * graph.matrixScale - x - 0.5,
         y - 0.5 * graph.matrixScale + 0.5,
@@ -99,7 +138,7 @@ function App() {
     );
   }
 
-  function canvasToGraphPosition(x, y, z) {
+  function canvasToGraphPosition(x: number, y: number, z: number) {
     return new Vector3(
         0.5 * graph.matrixScale - x - 0.5,
         y + 0.5 * graph.matrixScale - 0.5,
@@ -107,7 +146,7 @@ function App() {
     );
   }
 
-  function search(options, graph) {
+  function search(options: Options, graph: Graph) {
     const data = JSON.stringify({
       ...graph,
       algorithm: options.algorithm.value,
@@ -125,7 +164,7 @@ function App() {
           if (!response.ok) throw new Error('Network response not OK');
           return response.json();
         })
-        .then((data) => {
+        .then((data: RunResponse) => {
           const newMatrix = [...graph.matrix];
 
           // Reset visited and solution states
@@ -137,11 +176,11 @@ function App() {
 
           const {solution, visited} = data;
 
-          visited.forEach((p) => {
+          visited.forEach((p: number[]) => {
             newMatrix[p[0] + graph.matrixScale * p[1]] = 'Visited';
           });
 
-          solution.forEach((p) => {
+          solution.forEach((p: number[]) => {
             newMatrix[p[0] + graph.matrixScale * p[1]] = 'Solution';
           });
 
@@ -151,13 +190,13 @@ function App() {
         .catch((err) => console.error(err));
   }
 
-  const updateNode = (x, y, newNodeState) => {
+  const updateNode = (x: number, y: number, newNodeState: string) => {
     const newMatrix = [...graph.matrix];
     newMatrix[x + graph.matrixScale * y] = newNodeState;
     updateGraph(newMatrix);
   };
 
-  const updateGraph = (newMatrix) => {
+  const updateGraph = (newMatrix: string[]) => {
     const newGraph = {...graph, matrix: newMatrix};
     setGraph(newGraph);
     debouncedSearch(options, newGraph);
@@ -209,12 +248,12 @@ function App() {
                   .copy(intersect.point)
                   .floor()
                   .addScalar(0.5);
-              highlightMeshRef.current.position
+              (highlightMeshRef.current).position
                   .set(highlightPos.x, highlightPos.y, 0);
             });
 
             if (e.buttons === 1) {
-              const {x, y, z} = highlightMeshRef.current.position;
+              const {x, y, z} = (highlightMeshRef.current).position;
               const graphPosition = canvasToGraphPosition(x, y, z);
               const nodeState = graph.matrix[
                   graphPosition.x + graph.matrixScale * graphPosition.y
@@ -263,7 +302,7 @@ function App() {
           <planeGeometry args={[1, 1]} />
           <meshBasicMaterial side={DoubleSide} />
         </mesh>
-        {graph.matrix.map((type, i) => {
+        {graph.matrix.map((type: string, i: number) => {
           const x = i % graph.matrixScale;
           const y = Math.floor(i / graph.matrixScale);
           const canvasPosition = graphToCanvasPosition(x, y, 0);
@@ -314,13 +353,13 @@ function App() {
         }}
         isHidden={!controlPanelVisibilityState}
         algorithmOptions={options?.algorithms}
-        setAlgorithm={(algorithm) => setOptions({...options, algorithm})}
+      setAlgorithm={(algorithm: Algorithm) => setOptions({...options, algorithm})}
         algorithm={options?.algorithm}
         heuristicOptions={options?.heuristics}
-        setHeuristic={(heuristic) => setOptions({...options, heuristic})}
+        setHeuristic={(heuristic: Heuristic) => setOptions({...options, heuristic})}
         heuristic={options?.heuristic}
         templates={options?.templates}
-        setTemplate={(template) => {
+        setTemplate={(template: string) => {
           fetch(`http://localhost:8080/templates/${template}.json`, {
             method: 'GET',
           })

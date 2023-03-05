@@ -1,10 +1,22 @@
 import React from 'react';
 import RadioButton from './RadioButton';
-import PropTypes from 'prop-types';
 import './ControlPanel.css';
 import Button from './Button';
 
-function ControlPanel(props) {
+interface ControlPanelProps {
+    isHidden: boolean;
+    onPanelClose: () => void;
+    algorithmOptions?: any[];
+    setAlgorithm: (algorithm: any) => void;
+    algorithm: any;
+    heuristicOptions?: any[];
+    setHeuristic: (heuristic: any) => void;
+    heuristic: any;
+    templates?: any[];
+    setTemplate: (template: any) => void;
+}
+
+function ControlPanel(props: ControlPanelProps) {
   return (
     <div id='ControlPanel' hidden={props.isHidden}>
       <div className="bg"></div>
@@ -49,19 +61,6 @@ function ControlPanel(props) {
       </div>
     </div>
   );
-};
-
-ControlPanel.propTypes = {
-  isHidden: PropTypes.bool.isRequired,
-  onPanelClose: PropTypes.func,
-  algorithmOptions: PropTypes.array,
-  setAlgorithm: PropTypes.func.isRequired,
-  algorithm: PropTypes.object,
-  heuristicOptions: PropTypes.array,
-  setHeuristic: PropTypes.func.isRequired,
-  heuristic: PropTypes.object,
-  templates: PropTypes.array,
-  setTemplate: PropTypes.func.isRequired,
 };
 
 export default ControlPanel;
