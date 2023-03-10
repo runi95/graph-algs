@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback, useRef} from 'react';
+import {useEffect, useState, useRef, useMemo} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
 import {DoubleSide, Vector3, type Mesh} from 'three';
@@ -66,7 +66,7 @@ const initialGoal = {
 const graphHistoryLinkedList = new HistoryLinkedList<string[]>();
 
 function App() {
-  const debouncedSearch = useCallback(() =>
+  const debouncedSearch = useMemo(() =>
     debounce((options, graph) => { search(options, graph); }, 500), []);
   const highlightMeshRef = useRef<Mesh>(null!);
   const canvasRef = useRef<HTMLCanvasElement>(null!);
@@ -192,7 +192,7 @@ function App() {
   const updateGraph = (newMatrix: string[]) => {
     const newGraph = {...graph, matrix: newMatrix};
     setGraph(newGraph);
-    debouncedSearch();
+    debouncedSearch(options, newGraph);
   };
 
   const undo = () => {
@@ -369,7 +369,7 @@ function App() {
                 ...data
               };
               setGraph(newGraph);
-              debouncedSearch();
+              debouncedSearch(options, newGraph);
             })
             .catch((err) => { console.error(err); });
         }}
