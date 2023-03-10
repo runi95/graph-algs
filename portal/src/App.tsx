@@ -299,6 +299,7 @@ function App() {
           const x = i % graph.matrixScale;
           const y = Math.floor(i / graph.matrixScale);
           const canvasPosition = graphToCanvasPosition(x, y, 0);
+          if (type === '') return undefined;
           return <Tile
             key={`tile-${i}`}
             type={type}
