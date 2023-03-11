@@ -26,11 +26,13 @@ interface TileProps {
 export default function Tile(props: TileProps) {
   return (
     <mesh position={props.position}>
-      <boxGeometry args={[0.8, 0.8, 0.5]} />
+      <boxGeometry args={[0.8, 0.8, 0.49]} />
       <meshBasicMaterial
         color={typeToColor(props.type)}
         side={DoubleSide}
         visible={props.type !== ''}
+        opacity={props.type === 'Visited' ? 0.7 : 1}
+        transparent={props.type === 'Visited'}
       />
     </mesh>
   );
