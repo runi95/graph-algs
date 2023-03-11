@@ -12,6 +12,8 @@ import GearButton from './buttons/GearButton';
 import UndoButton from './buttons/UndoButton';
 import RedoButton from './buttons/RedoButton';
 import {HistoryLinkedList} from './utils/HistoryLinkedList';
+import UpButton from './buttons/UpButton';
+import DownButton from './buttons/DownButton';
 
 interface Algorithm {
   label: string;
@@ -42,6 +44,7 @@ interface Graph {
   start: GraphVector;
   goal: GraphVector;
   matrixScale: number;
+  matrixScalePow: number;
   matrix: string[];
 }
 
@@ -52,6 +55,7 @@ interface RunResponse {
 }
 
 const initialMatrixScale = 32;
+const initialMatrixScalePow = initialMatrixScale * initialMatrixScale;
 const initialStart = {
   x: 1,
   y: 1,
@@ -73,6 +77,7 @@ function App() {
   const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
   const [activeState, setActiveState] = useState(false);
   const [editState, setEditState] = useState(true);
+  const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
   const [
     controlPanelVisibilityState,
     setControlPanelVisibilityState
@@ -82,14 +87,26 @@ function App() {
     start: initialStart,
     goal: initialGoal,
     matrixScale: initialMatrixScale,
-    matrix: [...Array(initialMatrixScale * initialMatrixScale)].map((_, i) => {
+    matrixScalePow: initialMatrixScalePow,
+    matrix: [
+      ...Array(initialMatrixScale * initialMatrixScale * initialMatrixScale)
+    ].map((_, i) => {
       const x = i % initialMatrixScale;
-      const y = Math.floor(i / initialMatrixScale);
-      if (x === initialStart.x && y === initialStart.y) {
+      const y = Math.floor(i / initialMatrixScale) % initialMatrixScale;
+      const z = Math.floor(i / initialMatrixScalePow);
+      if (
+        x === initialStart.x &&
+        y === initialStart.y &&
+        z === initialStart.z
+      ) {
         return 'Start';
       }
 
-      if (x === initialGoal.x && y === initialGoal.y) {
+      if (
+        x === initialGoal.x &&
+        y === initialGoal.y &&
+        z === initialGoal.z
+      ) {
         return 'Goal';
       }
 
@@ -112,7 +129,7 @@ function App() {
         const newMatrix = [...graph.matrix];
 
         // Reset visited and solution states
-        for (let i = 0; i < graph.matrixScale * graph.matrixScale; i++) {
+        for (let i = 0; i < graph.matrixScalePow; i++) {
           if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
             newMatrix[i] = '';
           }
@@ -127,7 +144,7 @@ function App() {
     return new Vector3(
       0.5 * graph.matrixScale - x - 0.5,
       y - 0.5 * graph.matrixScale + 0.5,
-      z - 0.25
+      -0.5 * z - 0.25
     );
   }
 
@@ -135,7 +152,7 @@ function App() {
     return new Vector3(
       0.5 * graph.matrixScale - x - 0.5,
       y + 0.5 * graph.matrixScale - 0.5,
-      z + 0.25
+      z
     );
   }
 
@@ -161,7 +178,7 @@ function App() {
         const newMatrix = [...graph.matrix];
 
         // Reset visited and solution states
-        for (let i = 0; i < graph.matrixScale * graph.matrixScale; i++) {
+        for (let i = 0; i < graph.matrixScalePow; i++) {
           if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
             newMatrix[i] = '';
           }
@@ -170,11 +187,11 @@ function App() {
         const {solution, visited} = data;
 
         visited.forEach((p: number[]) => {
-          newMatrix[p[0] + graph.matrixScale * p[1]] = 'Visited';
+          newMatrix[p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2]] = 'Visited';
         });
 
         solution.forEach((p: number[]) => {
-          newMatrix[p[0] + graph.matrixScale * p[1]] = 'Solution';
+          newMatrix[p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2]] = 'Solution';
         });
 
         graphHistoryLinkedList.add(newMatrix);
@@ -183,9 +200,18 @@ function App() {
       .catch((err) => { console.error(err); });
   }
 
-  const updateNode = (x: number, y: number, newNodeState: string) => {
+  const updateNode = (
+    x: number,
+    y: number,
+    z: number,
+    newNodeState: string
+  ) => {
     const newMatrix = [...graph.matrix];
-    newMatrix[x + graph.matrixScale * y] = newNodeState;
+    newMatrix[
+      x +
+      graph.matrixScale * y +
+      graph.matrixScalePow * z
+    ] = newNodeState;
     updateGraph(newMatrix);
   };
 
@@ -234,6 +260,7 @@ function App() {
       >
         <mesh
           name={'ground'}
+          position={[0, 0, 0.5 - 0.5 * currentFloorLevel]}
           onPointerMove={(e) => {
             if (!editState) return;
             e.intersections.forEach((intersect) => {
@@ -242,41 +269,57 @@ function App() {
                 .floor()
                 .addScalar(0.5);
               (highlightMeshRef.current).position
-                .set(highlightPos.x, highlightPos.y, 0);
+                .set(
+                  highlightPos.x,
+                  highlightPos.y,
+                  0.5 - 0.5 * currentFloorLevel
+                );
             });
 
             if (e.buttons === 1) {
-              const {x, y, z} = (highlightMeshRef.current).position;
-              const graphPosition = canvasToGraphPosition(x, y, z);
+              const {x, y} = (highlightMeshRef.current).position;
+              const graphPosition = canvasToGraphPosition(
+                x,
+                y,
+                currentFloorLevel - 1
+              );
               const nodeState = graph.matrix[
-                graphPosition.x + graph.matrixScale * graphPosition.y
+                graphPosition.x +
+                graph.matrixScale * graphPosition.y +
+                graph.matrixScalePow * graphPosition.z
               ];
               if (nodeState === 'Start' || nodeState === 'Goal') return;
               if (activeState && nodeState !== 'Wall') {
-                updateNode(graphPosition.x, graphPosition.y, 'Wall');
+                updateNode(graphPosition.x, graphPosition.y, graphPosition.z, 'Wall');
               } else if (!activeState && nodeState === 'Wall') {
-                updateNode(graphPosition.x, graphPosition.y, '');
+                updateNode(graphPosition.x, graphPosition.y, graphPosition.z, '');
               }
             }
           }}
           onPointerDown={(e) => {
             if (!editState) return;
             if (e.buttons !== 1) return;
-            const {x, y, z} = new Vector3()
+            const {x, y} = new Vector3()
               .copy(e.intersections[0].point)
               .floor()
               .addScalar(0.5);
-            const graphPosition = canvasToGraphPosition(x, y, z);
+            const graphPosition = canvasToGraphPosition(
+              x,
+              y,
+              currentFloorLevel - 1
+            );
             const nodeState = graph.matrix[
-              graphPosition.x + graph.matrixScale * graphPosition.y
+              graphPosition.x +
+              graph.matrixScale * graphPosition.y +
+              graph.matrixScalePow * graphPosition.z
             ];
             if (nodeState === 'Start' || nodeState === 'Goal') return;
             if (nodeState === 'Wall') {
               setActiveState(false);
-              updateNode(graphPosition.x, graphPosition.y, '');
+              updateNode(graphPosition.x, graphPosition.y, graphPosition.z, '');
             } else {
               setActiveState(true);
-              updateNode(graphPosition.x, graphPosition.y, 'Wall');
+              updateNode(graphPosition.x, graphPosition.y, graphPosition.z, 'Wall');
             }
           }}
         >
@@ -286,10 +329,11 @@ function App() {
         <gridHelper
           rotation={[-Math.PI / 2, 0, 0]}
           args={[graph.matrixScale, graph.matrixScale]}
+          position={[0, 0, 0.5 - 0.5 * currentFloorLevel]}
         />
         <mesh
           ref={highlightMeshRef}
-          position={[0.5, 0.5, 0.5]}
+          position={[0.5, 0.5, 0.5 - 0.5 * currentFloorLevel]}
           visible={editState}
         >
           <planeGeometry args={[1, 1]} />
@@ -297,8 +341,9 @@ function App() {
         </mesh>
         {graph.matrix.map((type: string, i: number) => {
           const x = i % graph.matrixScale;
-          const y = Math.floor(i / graph.matrixScale);
-          const canvasPosition = graphToCanvasPosition(x, y, 0);
+          const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
+          const z = Math.floor(i / graph.matrixScalePow);
+          const canvasPosition = graphToCanvasPosition(x, y, z);
           if (type === '') return undefined;
           return <Tile
             key={`tile-${i}`}
@@ -338,6 +383,21 @@ function App() {
             setControlPanelVisibilityState(true);
           }}>
             <GearButton />
+          </div>
+        </div>
+        <div>
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            setCurrentFloorLevel(Math.min(currentFloorLevel + 1, 10));
+          }}>
+            <UpButton />
+          </div>
+          <div style={{height: 24, width: 24, textAlign: 'center'}}>
+            {currentFloorLevel}
+          </div>
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            setCurrentFloorLevel(Math.max(currentFloorLevel - 1, 1));
+          }}>
+            <DownButton />
           </div>
         </div>
       </div>

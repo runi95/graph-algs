@@ -14,6 +14,7 @@ import {CanberraDistance} from '../heuristics/canberraDistance';
 import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
 import {asyncHandler} from './asyncHandler';
 import {NoValidPathError} from '../algorithms/noValidPathError';
+import {Point3D} from '../algorithms/point3d';
 
 export const router = Router();
 
@@ -46,17 +47,23 @@ router.post('/run', asyncHandler(async (req, res) => {
 
   const h = new Heuristic();
   const startTime = process.hrtime();
+  const matrixScalePow = matrixScale * matrixScale;
   const alg = new Algorithm<Point2D>({
-    dimensions: [matrixScale, matrixScale],
+    dimensions: [matrixScale, matrixScale, matrixScale],
     nodes: matrix.map((node: never, i: number) => {
       const x = i % matrixScale;
-      const y = Math.floor(i / matrixScale);
-      return new Node(new Point2D(x, y), node === 'Wall');
+      const y = Math.floor(i / matrixScale) % matrixScale;
+      const z = Math.floor(i / matrixScalePow);
+      return new Node(new Point3D(x, y, z), node === 'Wall');
     })
   });
 
   try {
-    const data = alg.search([start.x, start.y], [goal.x, goal.y], h);
+    const data = alg.search(
+      [start.x, start.y, start.z],
+      [goal.x, goal.y, goal.z],
+      h
+    );
     const executionTime = process.hrtime(startTime)[1] / 1000000;
 
     return res.status(200).json({...data, executionTime});
