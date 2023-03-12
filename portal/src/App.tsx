@@ -168,7 +168,10 @@ function App() {
   function search(options: Options, graph: Graph) {
     const data = JSON.stringify({
       ...graph,
-      matrix: Object.fromEntries(graph.matrix),
+      matrix: Object.fromEntries(Array.from(graph.matrix.entries()).filter(
+        (pair) => pair[1] !== NodeTypes.SOLUTION &&
+                  pair[1] !== NodeTypes.VISITED
+      )),
       algorithm: options.algorithm.value,
       heuristic: options.heuristic.value
     });
