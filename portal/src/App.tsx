@@ -13,6 +13,8 @@ import RedoButton from './buttons/RedoButton';
 import {HistoryLinkedList} from './utils/HistoryLinkedList';
 import UpButton from './buttons/UpButton';
 import DownButton from './buttons/DownButton';
+import {NodeTypes} from './utils/NodeTypes';
+import {Graph} from './utils/Graph';
 
 interface Algorithm {
   label: string;
@@ -33,38 +35,24 @@ interface Options {
   templates: string[];
 }
 
-interface GraphVector {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface Graph {
-  start: GraphVector;
-  goal: GraphVector;
-  matrixScale: number;
-  matrixScalePow: number;
-  matrix: string[];
-}
-
 interface RunResponse {
   solution: number[][];
   visited: number[][];
   executionTime: number;
 }
 
-const typeToColorCode = (type: string) => {
+const typeToColorCode = (type: NodeTypes) => {
   switch (type) {
-    case 'Start':
+    case NodeTypes.START:
       return '#afa';
-    case 'Goal':
+    case NodeTypes.GOAL:
       return '#aaf';
-    case 'Solution':
+    case NodeTypes.SOLUTION:
       return '#49f';
-    case 'Visited':
+    case NodeTypes.VISITED:
       return '#324c75';
-    case 'Wall':
-    case '':
+    case NodeTypes.WALL:
+    case NodeTypes.EMPTY:
     default:
       return '#aaa';
   }
@@ -76,18 +64,14 @@ const initialMatrixScale = 32;
 const initialMatrixScalePow = initialMatrixScale * initialMatrixScale;
 const floors = 32;
 const matrixSize = initialMatrixScalePow * floors;
-const initialStart = {
-  x: 1,
-  y: 1,
-  z: 0
-};
-const initialGoal = {
-  x: initialMatrixScale - 2,
-  y: initialMatrixScale - 2,
-  z: 0
-};
-
-const graphHistoryLinkedList = new HistoryLinkedList<string[]>();
+const initialStart = new Vector3(1, 1, 0);
+const initialGoal = new Vector3(
+  initialMatrixScale - 2,
+  initialMatrixScale - 2,
+  0
+);
+const graphHistoryLinkedList =
+  new HistoryLinkedList<Array<[number, NodeTypes]>>();
 
 function App() {
   const colorArray = useMemo(() => Float32Array.from(
@@ -109,36 +93,10 @@ function App() {
     setControlPanelVisibilityState
   ] = useState(false);
   const [options, setOptions] = useState<Options>(null!);
-  const [graph, setGraph] = useState<Graph>({
-    start: initialStart,
-    goal: initialGoal,
-    matrixScale: initialMatrixScale,
-    matrixScalePow: initialMatrixScalePow,
-    matrix: [
-      ...Array(matrixSize)
-    ].map((_, i) => {
-      const x = i % initialMatrixScale;
-      const y = Math.floor(i / initialMatrixScale) % initialMatrixScale;
-      const z = Math.floor(i / initialMatrixScalePow);
-      if (
-        x === initialStart.x &&
-        y === initialStart.y &&
-        z === initialStart.z
-      ) {
-        return 'Start';
-      }
-
-      if (
-        x === initialGoal.x &&
-        y === initialGoal.y &&
-        z === initialGoal.z
-      ) {
-        return 'Goal';
-      }
-
-      return '';
-    })
-  });
+  const graph = useMemo(
+    () => new Graph(initialMatrixScale, initialStart, initialGoal),
+    []
+  );
 
   useEffect(() => {
     if (options === null) {
@@ -152,30 +110,27 @@ function App() {
       if (options.algorithm && options.heuristic) {
         search(options, graph);
       } else {
-        const newMatrix = [...graph.matrix];
-
         // Reset visited and solution states
-        for (let i = 0; i < graph.matrixScalePow; i++) {
-          if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
-            newMatrix[i] = '';
+        graph.matrix.forEach((node: NodeTypes, key: number) => {
+          if (node !== NodeTypes.VISITED && node !== NodeTypes.SOLUTION) {
+            graph.matrix.delete(key);
           }
-        }
-
-        setGraph({...graph, matrix: newMatrix});
+        });
       }
     }
   }, [options]);
 
-  useEffect(() => {
+  const updateGraph = () => {
     if (instancedMeshRef === null) return;
     if (instancedMeshRef.current === null) return;
 
     const mesh = instancedMeshRef.current;
-    graph.matrix.forEach((type: string, i: number) => {
-      tempColor.set(typeToColorCode(type)).toArray(colorArray, i * 4);
-      if (type === '') {
+    for (let i = 0; i < graph.matrixSize; i++) {
+      const node = graph.matrix.get(i) ?? NodeTypes.EMPTY;
+      tempColor.set(typeToColorCode(node)).toArray(colorArray, i * 4);
+      if (node === NodeTypes.EMPTY) {
         colorArray[i * 4 + 3] = 0;
-        return;
+        continue;
       }
       colorArray[i * 4 + 3] = 1;
       const x = i % graph.matrixScale;
@@ -184,11 +139,15 @@ function App() {
       const canvasPosition = graphToCanvasPosition(x, y, z);
       tempMatrix.setPosition(canvasPosition);
       mesh.setMatrixAt(i, tempMatrix);
-    });
+    }
 
     mesh.instanceMatrix.needsUpdate = true;
     mesh.geometry.attributes.color.needsUpdate = true;
-  }, [graph]);
+  };
+
+  useEffect(() => {
+    updateGraph();
+  }, []);
 
   function graphToCanvasPosition(x: number, y: number, z: number) {
     return new Vector3(
@@ -209,6 +168,7 @@ function App() {
   function search(options: Options, graph: Graph) {
     const data = JSON.stringify({
       ...graph,
+      matrix: Object.fromEntries(graph.matrix),
       algorithm: options.algorithm.value,
       heuristic: options.heuristic.value
     });
@@ -225,27 +185,31 @@ function App() {
         return await response.json();
       })
       .then((data: RunResponse) => {
-        const newMatrix = [...graph.matrix];
-
         // Reset visited and solution states
-        for (let i = 0; i < graph.matrixScalePow; i++) {
-          if (newMatrix[i] === 'Visited' || newMatrix[i] === 'Solution') {
-            newMatrix[i] = '';
+        graph.matrix.forEach((node: NodeTypes, key: number) => {
+          if (node !== NodeTypes.VISITED && node !== NodeTypes.SOLUTION) {
+            graph.matrix.set(key, node);
           }
-        }
+        });
 
         const {solution, visited} = data;
 
         visited.forEach((p: number[]) => {
-          newMatrix[p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2]] = 'Visited';
+          graph.matrix.set(
+            p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2],
+            NodeTypes.VISITED
+          );
         });
 
         solution.forEach((p: number[]) => {
-          newMatrix[p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2]] = 'Solution';
+          graph.matrix.set(
+            p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2],
+            NodeTypes.SOLUTION
+          );
         });
 
-        graphHistoryLinkedList.add(newMatrix);
-        setGraph({...graph, matrix: newMatrix});
+        updateGraph();
+        graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
       })
       .catch((err) => { console.error(err); });
   }
@@ -254,34 +218,47 @@ function App() {
     x: number,
     y: number,
     z: number,
-    newNodeState: string
+    newNodeState: NodeTypes
   ) => {
-    const newMatrix = [...graph.matrix];
-    newMatrix[
-      x +
-      graph.matrixScale * y +
-      graph.matrixScalePow * z
-    ] = newNodeState;
-    updateGraph(newMatrix);
-  };
+    const key = x +
+    graph.matrixScale * y +
+    graph.matrixScalePow * z;
+    graph.matrix.set(key, newNodeState);
+    tempColor.set(typeToColorCode(newNodeState)).toArray(colorArray, key * 4);
+    const mesh = instancedMeshRef.current;
+    if (newNodeState === NodeTypes.EMPTY) {
+      colorArray[key * 4 + 3] = 0;
+    } else {
+      colorArray[key * 4 + 3] = 1;
+      const canvasPosition = graphToCanvasPosition(x, y, z);
+      tempMatrix.setPosition(canvasPosition);
+      mesh.setMatrixAt(key, tempMatrix);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
 
-  const updateGraph = (newMatrix: string[]) => {
-    const newGraph = {...graph, matrix: newMatrix};
-    setGraph(newGraph);
-    debouncedSearch(options, newGraph);
+    mesh.geometry.attributes.color.needsUpdate = true;
+    debouncedSearch(options, graph);
   };
 
   const undo = () => {
     const prev = graphHistoryLinkedList.undo();
     if (prev !== null) {
-      setGraph({...graph, matrix: prev});
+      graph.matrix.clear();
+      for (const entry of prev) {
+        graph.matrix.set(entry[0], entry[1]);
+      }
+      updateGraph();
     }
   };
 
   const redo = () => {
     const next = graphHistoryLinkedList.redo();
     if (next !== null) {
-      setGraph({...graph, matrix: next});
+      graph.matrix.clear();
+      for (const entry of next) {
+        graph.matrix.set(entry[0], entry[1]);
+      }
+      updateGraph();
     }
   };
 
@@ -333,16 +310,29 @@ function App() {
                 y,
                 currentFloorLevel - 1
               );
-              const nodeState = graph.matrix[
+              const nodeState = graph.matrix.get(
                 graphPosition.x +
                 graph.matrixScale * graphPosition.y +
                 graph.matrixScalePow * graphPosition.z
-              ];
-              if (nodeState === 'Start' || nodeState === 'Goal') return;
-              if (activeState && nodeState !== 'Wall') {
-                updateNode(graphPosition.x, graphPosition.y, graphPosition.z, 'Wall');
-              } else if (!activeState && nodeState === 'Wall') {
-                updateNode(graphPosition.x, graphPosition.y, graphPosition.z, '');
+              );
+              if (
+                nodeState === NodeTypes.START ||
+                nodeState === NodeTypes.GOAL
+              ) return;
+              if (activeState && nodeState !== NodeTypes.WALL) {
+                updateNode(
+                  graphPosition.x,
+                  graphPosition.y,
+                  graphPosition.z,
+                  NodeTypes.WALL
+                );
+              } else if (!activeState && nodeState === NodeTypes.WALL) {
+                updateNode(
+                  graphPosition.x,
+                  graphPosition.y,
+                  graphPosition.z,
+                  NodeTypes.EMPTY
+                );
               }
             }
           }}
@@ -358,18 +348,31 @@ function App() {
               y,
               currentFloorLevel - 1
             );
-            const nodeState = graph.matrix[
+            const nodeState = graph.matrix.get(
               graphPosition.x +
               graph.matrixScale * graphPosition.y +
               graph.matrixScalePow * graphPosition.z
-            ];
-            if (nodeState === 'Start' || nodeState === 'Goal') return;
-            if (nodeState === 'Wall') {
+            );
+            if (
+              nodeState === NodeTypes.START ||
+              nodeState === NodeTypes.GOAL
+            ) return;
+            if (nodeState === NodeTypes.WALL) {
               setActiveState(false);
-              updateNode(graphPosition.x, graphPosition.y, graphPosition.z, '');
+              updateNode(
+                graphPosition.x,
+                graphPosition.y,
+                graphPosition.z,
+                NodeTypes.EMPTY
+              );
             } else {
               setActiveState(true);
-              updateNode(graphPosition.x, graphPosition.y, graphPosition.z, 'Wall');
+              updateNode(
+                graphPosition.x,
+                graphPosition.y,
+                graphPosition.z,
+                NodeTypes.WALL
+              );
             }
           }}
         >
@@ -477,12 +480,8 @@ function App() {
               return await response.json();
             })
             .then((data) => {
-              const newGraph = {
-                ...graph,
-                ...data
-              };
-              setGraph(newGraph);
-              debouncedSearch(options, newGraph);
+              console.log(data);
+              // debouncedSearch(options, newGraph);
             })
             .catch((err) => { console.error(err); });
         }}

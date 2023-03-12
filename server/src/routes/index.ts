@@ -33,10 +33,20 @@ interface Vector3D {
   z: number;
 }
 
+enum NodeTypes {
+  EMPTY = 0,
+  WALL = 1,
+  VISITED = 2,
+  SOLUTION = 3,
+  START = 4,
+  GOAL = 5
+}
+
 interface RunModel {
-  matrix: string[];
+  matrix: Record<number, NodeTypes>;
   matrixScale: number;
   matrixScalePow: number;
+  matrixSize: number;
   start: Vector3D;
   goal: Vector3D,
   algorithm: string;
@@ -48,7 +58,16 @@ interface CustomRequest<T> extends Request {
 }
 
 router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Response) => {
-  const {matrix, matrixScale, start, goal, algorithm, heuristic} = req.body;
+  const {
+    matrix,
+    matrixScale,
+    matrixScalePow,
+    matrixSize,
+    start,
+    goal,
+    algorithm,
+    heuristic
+  } = req.body;
   const selectedAlgorithm = algorithm.toLowerCase();
   const selectedHeuristic = heuristic.toLowerCase();
 
@@ -66,15 +85,17 @@ router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Respo
 
   const h = new Heuristic();
   const startTime = process.hrtime();
-  const matrixScalePow = matrixScale * matrixScale;
+  const nodes: Node<Point3D>[] = [];
+  for (let i = 0; i < matrixSize; i++) {
+    const node = matrix[i] ?? NodeTypes.EMPTY;
+    const x = i % matrixScale;
+    const y = Math.floor(i / matrixScale) % matrixScale;
+    const z = Math.floor(i / matrixScalePow);
+    nodes.push(new Node(new Point3D(x, y, z), node === NodeTypes.WALL));
+  }
   const alg = new Algorithm<Point2D>({
     dimensions: [matrixScale, matrixScale, matrixScale],
-    nodes: matrix.map((node: never, i: number) => {
-      const x = i % matrixScale;
-      const y = Math.floor(i / matrixScale) % matrixScale;
-      const z = Math.floor(i / matrixScalePow);
-      return new Node(new Point3D(x, y, z), node === 'Wall');
-    })
+    nodes
   });
 
   try {
