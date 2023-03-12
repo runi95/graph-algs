@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import {Router, Request, Response} from 'express';
 import * as fs from 'fs-extra';
 import {templatesDir} from '../config/config';
 import {AStar} from '../algorithms/aStar';
@@ -27,9 +27,28 @@ const heuristics = [
   ChebyshevDistance,
 ];
 
-router.post('/run', asyncHandler(async (req, res) => {
-  const {matrix, matrixScale, start, goal, algorithm, heuristic} = req.body;
+interface Vector3D {
+  x: number;
+  y: number;
+  z: number;
+}
 
+interface RunModel {
+  matrix: string[];
+  matrixScale: number;
+  matrixScalePow: number;
+  start: Vector3D;
+  goal: Vector3D,
+  algorithm: string;
+  heuristic: string;
+}
+
+interface CustomRequest<T> extends Request {
+  body: T;
+}
+
+router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Response) => {
+  const {matrix, matrixScale, start, goal, algorithm, heuristic} = req.body;
   const selectedAlgorithm = algorithm.toLowerCase();
   const selectedHeuristic = heuristic.toLowerCase();
 
@@ -80,7 +99,7 @@ router.post('/run', asyncHandler(async (req, res) => {
   }
 }));
 
-router.get('/options', asyncHandler(async (_req, res) => {
+router.get('/options', asyncHandler(async (_req: Request, res: Response) => {
   const mappedAlgorithms = algorithms.map(
     (algorithm) =>
     ({
