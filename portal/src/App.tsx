@@ -1,11 +1,10 @@
 import {useEffect, useState, useRef, useMemo} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
-import {DoubleSide, Vector3, type Mesh} from 'three';
+import {DoubleSide, type InstancedMesh, Vector3, type Mesh, Color, Matrix4} from 'three';
 import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
-import Tile from './Tile';
 import './App.css';
 import CameraButton from './buttons/CameraButton';
 import GearButton from './buttons/GearButton';
@@ -54,8 +53,29 @@ interface RunResponse {
   executionTime: number;
 }
 
+const typeToColorCode = (type: string) => {
+  switch (type) {
+    case 'Start':
+      return '#afa';
+    case 'Goal':
+      return '#aaf';
+    case 'Solution':
+      return '#49f';
+    case 'Visited':
+      return '#324c75';
+    case 'Wall':
+    case '':
+    default:
+      return '#aaa';
+  }
+};
+
+const tempColor = new Color();
+const tempMatrix = new Matrix4();
 const initialMatrixScale = 32;
 const initialMatrixScalePow = initialMatrixScale * initialMatrixScale;
+const floors = 32;
+const matrixSize = initialMatrixScalePow * floors;
 const initialStart = {
   x: 1,
   y: 1,
@@ -70,11 +90,17 @@ const initialGoal = {
 const graphHistoryLinkedList = new HistoryLinkedList<string[]>();
 
 function App() {
+  const colorArray = useMemo(() => Float32Array.from(
+    new Array(matrixSize)
+      .fill(undefined, undefined)
+      .flatMap(
+        () => [...tempColor.set('#fff').toArray(), 1])), []);
   const debouncedSearch = useMemo(() =>
     debounce((options, graph) => { search(options, graph); }, 500), []);
   const highlightMeshRef = useRef<Mesh>(null!);
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
+  const instancedMeshRef = useRef<InstancedMesh>(null!);
   const [activeState, setActiveState] = useState(false);
   const [editState, setEditState] = useState(true);
   const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
@@ -89,7 +115,7 @@ function App() {
     matrixScale: initialMatrixScale,
     matrixScalePow: initialMatrixScalePow,
     matrix: [
-      ...Array(initialMatrixScale * initialMatrixScale * initialMatrixScale)
+      ...Array(matrixSize)
     ].map((_, i) => {
       const x = i % initialMatrixScale;
       const y = Math.floor(i / initialMatrixScale) % initialMatrixScale;
@@ -139,6 +165,30 @@ function App() {
       }
     }
   }, [options]);
+
+  useEffect(() => {
+    if (instancedMeshRef === null) return;
+    if (instancedMeshRef.current === null) return;
+
+    const mesh = instancedMeshRef.current;
+    graph.matrix.forEach((type: string, i: number) => {
+      tempColor.set(typeToColorCode(type)).toArray(colorArray, i * 4);
+      if (type === '') {
+        colorArray[i * 4 + 3] = 0;
+        return;
+      }
+      colorArray[i * 4 + 3] = 1;
+      const x = i % graph.matrixScale;
+      const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
+      const z = Math.floor(i / graph.matrixScalePow);
+      const canvasPosition = graphToCanvasPosition(x, y, z);
+      tempMatrix.setPosition(canvasPosition);
+      mesh.setMatrixAt(i, tempMatrix);
+    });
+
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.geometry.attributes.color.needsUpdate = true;
+  }, [graph]);
 
   function graphToCanvasPosition(x: number, y: number, z: number) {
     return new Vector3(
@@ -339,18 +389,21 @@ function App() {
           <planeGeometry args={[1, 1]} />
           <meshBasicMaterial side={DoubleSide} />
         </mesh>
-        {graph.matrix.map((type: string, i: number) => {
-          const x = i % graph.matrixScale;
-          const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
-          const z = Math.floor(i / graph.matrixScalePow);
-          const canvasPosition = graphToCanvasPosition(x, y, z);
-          if (type === '') return undefined;
-          return <Tile
-            key={`tile-${i}`}
-            type={type}
-            position={canvasPosition}
-          />;
-        })}
+        <instancedMesh
+          ref={instancedMeshRef}
+          args={[undefined, undefined, matrixSize]}
+        >
+          <boxGeometry args={[0.8, 0.8, 0.49]}>
+            <instancedBufferAttribute attach='attributes-color' args={[colorArray, 4]} />
+          </boxGeometry>
+          <meshBasicMaterial
+            attach='material'
+            side={DoubleSide}
+            transparent={true}
+            alphaTest={0}
+            vertexColors
+          />
+        </instancedMesh>
         <OrbitControls
           ref={orbitControlsRef}
           enableRotate={!editState}
@@ -387,7 +440,7 @@ function App() {
         </div>
         <div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setCurrentFloorLevel(Math.min(currentFloorLevel + 1, 10));
+            setCurrentFloorLevel(Math.min(currentFloorLevel + 1, floors));
           }}>
             <UpButton />
           </div>
