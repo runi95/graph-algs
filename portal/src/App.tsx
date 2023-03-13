@@ -488,8 +488,20 @@ function App() {
               return await response.json();
             })
             .then((data) => {
-              console.log(data);
-              // debouncedSearch(options, newGraph);
+              graph.matrix.clear();
+
+              for (let i = 0; i < data.matrix.length; i++) {
+                const node = data.matrix[i];
+                if (node === 'Wall') {
+                  graph.matrix.set(i, NodeTypes.WALL);
+                } else if (node === 'Start') {
+                  graph.matrix.set(i, NodeTypes.START);
+                } else if (node === 'Goal') {
+                  graph.matrix.set(i, NodeTypes.GOAL);
+                }
+              }
+
+              debouncedSearch(options, graph);
             })
             .catch((err) => { console.error(err); });
         }}
