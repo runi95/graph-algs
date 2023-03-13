@@ -132,7 +132,12 @@ function App() {
         colorArray[i * 4 + 3] = 0;
         continue;
       }
-      colorArray[i * 4 + 3] = 1;
+
+      if (node === NodeTypes.VISITED) {
+        colorArray[i * 4 + 3] = 0.6;
+      } else {
+        colorArray[i * 4 + 3] = 1;
+      }
       const x = i % graph.matrixScale;
       const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
       const z = Math.floor(i / graph.matrixScalePow);
@@ -232,7 +237,7 @@ function App() {
     if (newNodeState === NodeTypes.EMPTY) {
       colorArray[key * 4 + 3] = 0;
     } else {
-      colorArray[key * 4 + 3] = 1;
+      colorArray[key * 4 + 3] = 0.7;
       const canvasPosition = graphToCanvasPosition(x, y, z);
       tempMatrix.setPosition(canvasPosition);
       mesh.setMatrixAt(key, tempMatrix);
