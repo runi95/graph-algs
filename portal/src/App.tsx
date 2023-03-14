@@ -441,7 +441,7 @@ function App() {
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             setEditState(!editState);
           }}>
-            <CameraButton isActive={editState} />
+            <CameraButton isActive={!editState} />
           </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             setControlPanelVisibilityState(true);
