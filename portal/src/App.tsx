@@ -1,7 +1,7 @@
-import {useEffect, useState, useRef, useMemo} from 'react';
+import {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
-import {DoubleSide, type InstancedMesh, Vector3, type Mesh, Color, Matrix4} from 'three';
+import {DoubleSide, type InstancedMesh, Vector3, Color, Matrix4} from 'three';
 import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
@@ -80,11 +80,15 @@ function App() {
       .flatMap(
         () => [...tempColor.set('#fff').toArray(), 1])), []);
   const debouncedSearch = useMemo(() =>
-    debounce((options, graph) => { search(options, graph); }, 500), []);
-  const highlightMeshRef = useRef<Mesh>(null!);
+    debounce((options, graph, instancedMesh) => {
+      search(options, graph, instancedMesh);
+    }, 500), []);
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
-  const instancedMeshRef = useRef<InstancedMesh>(null!);
+  const [instancedMesh, setInstancedMesh] = useState<InstancedMesh>(null!);
+  const instancedMeshRef = useCallback((instancedMesh: InstancedMesh) => {
+    setInstancedMesh(instancedMesh);
+  }, []);
   const [activeState, setActiveState] = useState(false);
   const [editState, setEditState] = useState(true);
   const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
@@ -97,34 +101,49 @@ function App() {
     () => new Graph(initialMatrixScale, initialStart, initialGoal),
     []
   );
+  const selection = useMemo(() => ({
+    positions: new Map<number, Vector3>()
+  }), []);
 
   useEffect(() => {
-    if (options === null) {
-      fetch('http://localhost:8080/api/options').then(async(response) => {
-        if (!response.ok) throw new Error('Network response not OK');
-        return await response.json();
-      }).then((data) => {
-        setOptions(data);
-      }).catch((err) => { console.error(err); });
+    if (options === null) return;
+    if (options.algorithm && options.heuristic) {
+      search(options, graph, instancedMesh);
     } else {
-      if (options.algorithm && options.heuristic) {
-        search(options, graph);
-      } else {
-        // Reset visited and solution states
-        graph.matrix.forEach((node: NodeTypes, key: number) => {
-          if (node !== NodeTypes.VISITED && node !== NodeTypes.SOLUTION) {
-            graph.matrix.delete(key);
-          }
-        });
-      }
+      // Reset visited and solution states
+      graph.matrix.forEach((node: NodeTypes, key: number) => {
+        if (node !== NodeTypes.VISITED && node !== NodeTypes.SOLUTION) {
+          graph.matrix.delete(key);
+        }
+      });
     }
   }, [options]);
 
-  const updateGraph = () => {
-    if (instancedMeshRef === null) return;
-    if (instancedMeshRef.current === null) return;
+  // Only runs once!
+  useEffect(() => {
+    if (instancedMesh === null) return;
 
-    const mesh = instancedMeshRef.current;
+    fetch('http://localhost:8080/api/options').then(async(response) => {
+      if (!response.ok) throw new Error('Network response not OK');
+      return await response.json();
+    }).then((data) => {
+      setOptions(data);
+    }).catch((err) => { console.error(err); });
+
+    for (let i = 0; i < graph.matrixSize; i++) {
+      const x = i % graph.matrixScale;
+      const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
+      const z = Math.floor(i / graph.matrixScalePow);
+      const canvasPosition = graphToCanvasPosition(x, y, z);
+      tempMatrix.setPosition(canvasPosition);
+      instancedMesh.setMatrixAt(i, tempMatrix);
+    }
+
+    updateGraph(instancedMesh);
+    instancedMesh.instanceMatrix.needsUpdate = true;
+  }, [instancedMesh]);
+
+  const updateGraph = (instancedMesh: InstancedMesh) => {
     for (let i = 0; i < graph.matrixSize; i++) {
       const node = graph.matrix.get(i) ?? NodeTypes.EMPTY;
       tempColor.set(typeToColorCode(node)).toArray(colorArray, i * 4);
@@ -138,21 +157,10 @@ function App() {
       } else {
         colorArray[i * 4 + 3] = 1;
       }
-      const x = i % graph.matrixScale;
-      const y = Math.floor(i / graph.matrixScale) % graph.matrixScale;
-      const z = Math.floor(i / graph.matrixScalePow);
-      const canvasPosition = graphToCanvasPosition(x, y, z);
-      tempMatrix.setPosition(canvasPosition);
-      mesh.setMatrixAt(i, tempMatrix);
     }
 
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.geometry.attributes.color.needsUpdate = true;
+    instancedMesh.geometry.attributes.color.needsUpdate = true;
   };
-
-  useEffect(() => {
-    updateGraph();
-  }, []);
 
   function graphToCanvasPosition(x: number, y: number, z: number) {
     return new Vector3(
@@ -170,7 +178,11 @@ function App() {
     );
   }
 
-  function search(options: Options, graph: Graph) {
+  function search(
+    options: Options,
+    graph: Graph,
+    instancedMesh: InstancedMesh
+  ) {
     const data = JSON.stringify({
       ...graph,
       matrix: Object.fromEntries(Array.from(graph.matrix.entries()).filter(
@@ -216,13 +228,26 @@ function App() {
           );
         });
 
-        updateGraph();
+        updateGraph(instancedMesh);
         graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
       })
       .catch((err) => { console.error(err); });
   }
 
-  const updateNode = (
+  const updateNode = (key: number, newNodeState: NodeTypes) => {
+    tempColor.set(typeToColorCode(newNodeState)).toArray(colorArray, key * 4);
+    if (newNodeState === NodeTypes.EMPTY) {
+      colorArray[key * 4 + 3] = 0;
+    } else if (newNodeState === NodeTypes.VISITED) {
+      colorArray[key * 4 + 3] = 0.7;
+    } else {
+      colorArray[key * 4 + 3] = 1;
+    }
+
+    return key;
+  };
+
+  const updateNodeAndSearch = (
     x: number,
     y: number,
     z: number,
@@ -231,21 +256,10 @@ function App() {
     const key = x +
     graph.matrixScale * y +
     graph.matrixScalePow * z;
+    updateNode(key, newNodeState);
     graph.matrix.set(key, newNodeState);
-    tempColor.set(typeToColorCode(newNodeState)).toArray(colorArray, key * 4);
-    const mesh = instancedMeshRef.current;
-    if (newNodeState === NodeTypes.EMPTY) {
-      colorArray[key * 4 + 3] = 0;
-    } else {
-      colorArray[key * 4 + 3] = 0.7;
-      const canvasPosition = graphToCanvasPosition(x, y, z);
-      tempMatrix.setPosition(canvasPosition);
-      mesh.setMatrixAt(key, tempMatrix);
-      mesh.instanceMatrix.needsUpdate = true;
-    }
-
-    mesh.geometry.attributes.color.needsUpdate = true;
-    debouncedSearch(options, graph);
+    instancedMesh.geometry.attributes.color.needsUpdate = true;
+    debouncedSearch(options, graph, instancedMesh);
   };
 
   const undo = () => {
@@ -255,7 +269,7 @@ function App() {
       for (const entry of prev) {
         graph.matrix.set(entry[0], entry[1]);
       }
-      updateGraph();
+      updateGraph(instancedMesh);
     }
   };
 
@@ -266,7 +280,7 @@ function App() {
       for (const entry of next) {
         graph.matrix.set(entry[0], entry[1]);
       }
-      updateGraph();
+      updateGraph(instancedMesh);
     }
   };
 
@@ -296,52 +310,67 @@ function App() {
         <mesh
           name={'ground'}
           position={[0, 0, 0.5 - 0.5 * currentFloorLevel]}
-          onPointerMove={(e) => {
+          onPointerLeave={() => {
+            if (instancedMesh === null) return;
             if (!editState) return;
+            selection.positions.forEach((_, i) => {
+              updateNode(i, graph.matrix.get(i) ?? NodeTypes.EMPTY);
+            });
+            selection.positions.clear();
+            instancedMesh.geometry.attributes.color.needsUpdate = true;
+          }}
+          onPointerMove={(e) => {
+            if (instancedMesh === null) return;
+            if (!editState) return;
+
+            selection.positions.forEach((_, i) => {
+              updateNode(i, graph.matrix.get(i) ?? NodeTypes.EMPTY);
+            });
+            selection.positions.clear();
+
             e.intersections.forEach((intersect) => {
               const highlightPos = new Vector3()
                 .copy(intersect.point)
                 .floor()
                 .addScalar(0.5);
-              (highlightMeshRef.current).position
-                .set(
-                  highlightPos.x,
-                  highlightPos.y,
-                  0.5 - 0.5 * currentFloorLevel
-                );
-            });
-
-            if (e.buttons === 1) {
-              const {x, y} = (highlightMeshRef.current).position;
+              const {x, y} = highlightPos;
               const graphPosition = canvasToGraphPosition(
                 x,
                 y,
                 currentFloorLevel - 1
               );
-              const nodeState = graph.matrix.get(
-                graphPosition.x +
+              const key = graphPosition.x +
                 graph.matrixScale * graphPosition.y +
-                graph.matrixScalePow * graphPosition.z
-              );
-              if (
-                nodeState === NodeTypes.START ||
-                nodeState === NodeTypes.GOAL
-              ) return;
-              if (activeState && nodeState !== NodeTypes.WALL) {
-                updateNode(
-                  graphPosition.x,
-                  graphPosition.y,
-                  graphPosition.z,
-                  NodeTypes.WALL
-                );
-              } else if (!activeState && nodeState === NodeTypes.WALL) {
-                updateNode(
-                  graphPosition.x,
-                  graphPosition.y,
-                  graphPosition.z,
-                  NodeTypes.EMPTY
-                );
-              }
+                graph.matrixScalePow * graphPosition.z;
+              selection.positions.set(key, graphPosition);
+              updateNode(key, NodeTypes.WALL);
+            });
+
+            instancedMesh.geometry.attributes.color.needsUpdate = true;
+
+            if (e.buttons === 1) {
+              selection.positions.forEach((graphPosition, i) => {
+                const nodeState = graph.matrix.get(i);
+                if (
+                  nodeState === NodeTypes.START ||
+                  nodeState === NodeTypes.GOAL
+                ) return;
+                if (activeState && nodeState !== NodeTypes.WALL) {
+                  updateNodeAndSearch(
+                    graphPosition.x,
+                    graphPosition.y,
+                    graphPosition.z,
+                    NodeTypes.WALL
+                  );
+                } else if (!activeState && nodeState === NodeTypes.WALL) {
+                  updateNodeAndSearch(
+                    graphPosition.x,
+                    graphPosition.y,
+                    graphPosition.z,
+                    NodeTypes.EMPTY
+                  );
+                }
+              });
             }
           }}
           onPointerDown={(e) => {
@@ -367,7 +396,7 @@ function App() {
             ) return;
             if (nodeState === NodeTypes.WALL) {
               setActiveState(false);
-              updateNode(
+              updateNodeAndSearch(
                 graphPosition.x,
                 graphPosition.y,
                 graphPosition.z,
@@ -375,7 +404,7 @@ function App() {
               );
             } else {
               setActiveState(true);
-              updateNode(
+              updateNodeAndSearch(
                 graphPosition.x,
                 graphPosition.y,
                 graphPosition.z,
@@ -392,14 +421,6 @@ function App() {
           args={[graph.matrixScale, graph.matrixScale]}
           position={[0, 0, 0.5 - 0.5 * currentFloorLevel]}
         />
-        <mesh
-          ref={highlightMeshRef}
-          position={[0.5, 0.5, 0.5 - 0.5 * currentFloorLevel]}
-          visible={editState}
-        >
-          <planeGeometry args={[1, 1]} />
-          <meshBasicMaterial side={DoubleSide} />
-        </mesh>
         <instancedMesh
           ref={instancedMeshRef}
           args={[undefined, undefined, matrixSize]}
@@ -411,7 +432,7 @@ function App() {
             attach='material'
             side={DoubleSide}
             transparent={true}
-            alphaTest={0}
+            alphaTest={0.1}
             vertexColors
           />
         </instancedMesh>
@@ -439,6 +460,14 @@ function App() {
             <RedoButton />
           </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            if (editState) {
+              selection.positions.forEach((_, i) => {
+                updateNode(i, graph.matrix.get(i) ?? NodeTypes.EMPTY);
+              });
+              selection.positions.clear();
+              instancedMesh.geometry.attributes.color.needsUpdate = true;
+            }
+
             setEditState(!editState);
           }}>
             <CameraButton isActive={!editState} />
@@ -501,7 +530,7 @@ function App() {
                 }
               }
 
-              debouncedSearch(options, graph);
+              debouncedSearch(options, graph, instancedMesh);
             })
             .catch((err) => { console.error(err); });
         }}
