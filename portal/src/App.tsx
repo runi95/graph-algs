@@ -64,11 +64,11 @@ const initialMatrixScale = 32;
 const initialMatrixScalePow = initialMatrixScale * initialMatrixScale;
 const floors = 32;
 const matrixSize = initialMatrixScalePow * floors;
-const initialStart = new Vector3(1, 1, 0);
+const initialStart = new Vector3(1, 1, 2);
 const initialGoal = new Vector3(
   initialMatrixScale - 2,
   initialMatrixScale - 2,
-  0
+  8
 );
 const graphHistoryLinkedList =
   new HistoryLinkedList<Array<[number, NodeTypes]>>();
