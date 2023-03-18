@@ -104,7 +104,8 @@ function App() {
   );
   const selection = useMemo(() => ({
     positions: new Map<number, Vector3>(),
-    activeState: false
+    activeState: false,
+    transparency: 0.6
   }), []);
 
   useEffect(() => {
@@ -155,7 +156,7 @@ function App() {
           break;
         case NodeTypes.VISITED:
         case NodeTypes.WALL:
-          colorArray[i * 4 + 3] = 0.6;
+          colorArray[i * 4 + 3] = selection.transparency;
           break;
         default:
           colorArray[i * 4 + 3] = 1;
@@ -245,7 +246,7 @@ function App() {
         break;
       case NodeTypes.VISITED:
       case NodeTypes.WALL:
-        colorArray[key * 4 + 3] = 0.6;
+        colorArray[key * 4 + 3] = selection.transparency;
         break;
       default:
         colorArray[key * 4 + 3] = 1;
@@ -543,6 +544,12 @@ function App() {
         />
       </Canvas>
       <div className='information-panel'>
+        <div>
+          <input type="range" min="11" max="100" onChange={(e) => {
+            selection.transparency = Number(e.target.value) / 100;
+            updateGraph(instancedMesh);
+          }} />
+        </div>
         <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
           undo();
         }}>
