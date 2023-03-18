@@ -15,6 +15,7 @@ import UpButton from './buttons/UpButton';
 import DownButton from './buttons/DownButton';
 import {NodeTypes} from './utils/NodeTypes';
 import {Graph} from './utils/Graph';
+import StackButton, {StackButtonState} from './StackButton';
 
 interface Algorithm {
   label: string;
@@ -89,8 +90,8 @@ function App() {
   const instancedMeshRef = useCallback((instancedMesh: InstancedMesh) => {
     setInstancedMesh(instancedMesh);
   }, []);
-  const [activeState, setActiveState] = useState(false);
   const [editState, setEditState] = useState(true);
+  const [stackState, setStackState] = useState(StackButtonState.SINGLE);
   const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
   const [
     controlPanelVisibilityState,
@@ -102,7 +103,8 @@ function App() {
     []
   );
   const selection = useMemo(() => ({
-    positions: new Map<number, Vector3>()
+    positions: new Map<number, Vector3>(),
+    activeState: false
   }), []);
 
   useEffect(() => {
@@ -147,15 +149,16 @@ function App() {
     for (let i = 0; i < graph.matrixSize; i++) {
       const node = graph.matrix.get(i) ?? NodeTypes.EMPTY;
       tempColor.set(typeToColorCode(node)).toArray(colorArray, i * 4);
-      if (node === NodeTypes.EMPTY) {
-        colorArray[i * 4 + 3] = 0;
-        continue;
-      }
-
-      if (node === NodeTypes.VISITED) {
-        colorArray[i * 4 + 3] = 0.6;
-      } else {
-        colorArray[i * 4 + 3] = 1;
+      switch (node) {
+        case NodeTypes.EMPTY:
+          colorArray[i * 4 + 3] = 0;
+          break;
+        case NodeTypes.VISITED:
+        case NodeTypes.WALL:
+          colorArray[i * 4 + 3] = 0.6;
+          break;
+        default:
+          colorArray[i * 4 + 3] = 1;
       }
     }
 
@@ -236,30 +239,19 @@ function App() {
 
   const updateNode = (key: number, newNodeState: NodeTypes) => {
     tempColor.set(typeToColorCode(newNodeState)).toArray(colorArray, key * 4);
-    if (newNodeState === NodeTypes.EMPTY) {
-      colorArray[key * 4 + 3] = 0;
-    } else if (newNodeState === NodeTypes.VISITED) {
-      colorArray[key * 4 + 3] = 0.7;
-    } else {
-      colorArray[key * 4 + 3] = 1;
+    switch (newNodeState) {
+      case NodeTypes.EMPTY:
+        colorArray[key * 4 + 3] = 0;
+        break;
+      case NodeTypes.VISITED:
+      case NodeTypes.WALL:
+        colorArray[key * 4 + 3] = 0.6;
+        break;
+      default:
+        colorArray[key * 4 + 3] = 1;
     }
 
     return key;
-  };
-
-  const updateNodeAndSearch = (
-    x: number,
-    y: number,
-    z: number,
-    newNodeState: NodeTypes
-  ) => {
-    const key = x +
-    graph.matrixScale * y +
-    graph.matrixScalePow * z;
-    updateNode(key, newNodeState);
-    graph.matrix.set(key, newNodeState);
-    instancedMesh.geometry.attributes.color.needsUpdate = true;
-    debouncedSearch(options, graph, instancedMesh);
   };
 
   const undo = () => {
@@ -342,35 +334,134 @@ function App() {
               const key = graphPosition.x +
                 graph.matrixScale * graphPosition.y +
                 graph.matrixScalePow * graphPosition.z;
+              const selectionNodeState = graph.matrix.get(key);
+              if (selectionNodeState === NodeTypes.START) return;
+              if (selectionNodeState === NodeTypes.GOAL) return;
               selection.positions.set(key, graphPosition);
               updateNode(key, NodeTypes.WALL);
+
+              const renderHorizontalSelect = () => {
+                const isWallSelected = selectionNodeState === NodeTypes.WALL;
+                const keyBaseState = key - graphPosition.x;
+                for (let i = graphPosition.x + 1; i < initialMatrixScale; i++) {
+                  const keyIndex = keyBaseState + i;
+                  const nodeState = graph.matrix.get(keyIndex);
+                  if (
+                    isWallSelected
+                      ? nodeState !== NodeTypes.WALL
+                      : nodeState === NodeTypes.WALL
+                  ) break;
+                  if (nodeState === NodeTypes.START) break;
+                  if (nodeState === NodeTypes.GOAL) break;
+                  selection.positions.set(
+                    keyIndex,
+                    new Vector3(
+                      i,
+                      graphPosition.y,
+                      graphPosition.z
+                    )
+                  );
+                  updateNode(keyIndex, NodeTypes.WALL);
+                }
+                for (let i = graphPosition.x - 1; i >= 0; i--) {
+                  const keyIndex = keyBaseState + i;
+                  const nodeState = graph.matrix.get(keyIndex);
+                  if (
+                    isWallSelected
+                      ? nodeState !== NodeTypes.WALL
+                      : nodeState === NodeTypes.WALL
+                  ) break;
+                  if (nodeState === NodeTypes.START) break;
+                  if (nodeState === NodeTypes.GOAL) break;
+                  selection.positions.set(
+                    keyIndex,
+                    new Vector3(
+                      i,
+                      graphPosition.y,
+                      graphPosition.z
+                    )
+                  );
+                  updateNode(keyIndex, NodeTypes.WALL);
+                }
+              };
+
+              const renderVerticalSelect = () => {
+                const isWallSelected = selectionNodeState === NodeTypes.WALL;
+                const keyBaseState = key - graph.matrixScale * graphPosition.y;
+                for (let i = graphPosition.y + 1; i < initialMatrixScale; i++) {
+                  const keyIndex = keyBaseState + graph.matrixScale * i;
+                  const nodeState = graph.matrix.get(keyIndex);
+                  if (
+                    isWallSelected
+                      ? nodeState !== NodeTypes.WALL
+                      : nodeState === NodeTypes.WALL
+                  ) break;
+                  if (nodeState === NodeTypes.START) break;
+                  if (nodeState === NodeTypes.GOAL) break;
+                  selection.positions.set(
+                    keyIndex,
+                    new Vector3(
+                      graphPosition.x,
+                      i,
+                      graphPosition.z
+                    )
+                  );
+                  updateNode(keyIndex, NodeTypes.WALL);
+                }
+                for (let i = graphPosition.y - 1; i >= 0; i--) {
+                  const keyIndex = keyBaseState + graph.matrixScale * i;
+                  const nodeState = graph.matrix.get(keyIndex);
+                  if (
+                    isWallSelected
+                      ? nodeState !== NodeTypes.WALL
+                      : nodeState === NodeTypes.WALL
+                  ) break;
+                  if (nodeState === NodeTypes.START) break;
+                  if (nodeState === NodeTypes.GOAL) break;
+                  selection.positions.set(
+                    keyIndex,
+                    new Vector3(
+                      graphPosition.x,
+                      i,
+                      graphPosition.z
+                    )
+                  );
+                  updateNode(keyIndex, NodeTypes.WALL);
+                }
+              };
+
+              switch (stackState) {
+                case StackButtonState.HORIZONTAL:
+                  renderHorizontalSelect();
+                  break;
+                case StackButtonState.VERTICAL:
+                  renderVerticalSelect();
+                  break;
+                case StackButtonState.SINGLE:
+                default:
+              }
             });
 
             instancedMesh.geometry.attributes.color.needsUpdate = true;
 
             if (e.buttons === 1) {
-              selection.positions.forEach((graphPosition, i) => {
+              selection.positions.forEach((_, i) => {
                 const nodeState = graph.matrix.get(i);
                 if (
                   nodeState === NodeTypes.START ||
                   nodeState === NodeTypes.GOAL
                 ) return;
-                if (activeState && nodeState !== NodeTypes.WALL) {
-                  updateNodeAndSearch(
-                    graphPosition.x,
-                    graphPosition.y,
-                    graphPosition.z,
-                    NodeTypes.WALL
-                  );
-                } else if (!activeState && nodeState === NodeTypes.WALL) {
-                  updateNodeAndSearch(
-                    graphPosition.x,
-                    graphPosition.y,
-                    graphPosition.z,
-                    NodeTypes.EMPTY
-                  );
+                if (
+                  selection.activeState && nodeState !== NodeTypes.WALL
+                ) {
+                  graph.matrix.set(i, NodeTypes.WALL);
+                } else if (
+                  !selection.activeState && nodeState === NodeTypes.WALL
+                ) {
+                  graph.matrix.set(i, NodeTypes.EMPTY);
                 }
               });
+              debouncedSearch(options, graph, instancedMesh);
             }
           }}
           onPointerDown={(e) => {
@@ -390,27 +481,36 @@ function App() {
               graph.matrixScale * graphPosition.y +
               graph.matrixScalePow * graphPosition.z
             );
+
             if (
               nodeState === NodeTypes.START ||
               nodeState === NodeTypes.GOAL
             ) return;
             if (nodeState === NodeTypes.WALL) {
-              setActiveState(false);
-              updateNodeAndSearch(
-                graphPosition.x,
-                graphPosition.y,
-                graphPosition.z,
-                NodeTypes.EMPTY
-              );
+              selection.activeState = false;
             } else {
-              setActiveState(true);
-              updateNodeAndSearch(
-                graphPosition.x,
-                graphPosition.y,
-                graphPosition.z,
-                NodeTypes.WALL
-              );
+              selection.activeState = true;
             }
+
+            selection.positions.forEach((_, i) => {
+              const nodeState = graph.matrix.get(i);
+              if (
+                nodeState === NodeTypes.START ||
+                nodeState === NodeTypes.GOAL
+              ) return;
+              if (
+                selection.activeState && nodeState !== NodeTypes.WALL
+              ) {
+                graph.matrix.set(i, NodeTypes.WALL);
+              } else if (
+                !selection.activeState && nodeState === NodeTypes.WALL
+              ) {
+                graph.matrix.set(i, NodeTypes.EMPTY);
+                selection.positions.delete(i);
+              }
+            });
+            instancedMesh.geometry.attributes.color.needsUpdate = true;
+            debouncedSearch(options, graph, instancedMesh);
           }}
         >
           <planeGeometry args={[graph.matrixScale, graph.matrixScale]} />
@@ -443,22 +543,17 @@ function App() {
         />
       </Canvas>
       <div className='information-panel'>
-        <div style={{
-          display: 'flex',
-          textAlign: 'right',
-          justifyContent: 'space-evenly',
-          gap: 10
+        <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+          undo();
         }}>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            undo();
-          }}>
-            <UndoButton />
-          </div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            redo();
-          }}>
-            <RedoButton />
-          </div>
+          <UndoButton />
+        </div>
+        <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+          redo();
+        }}>
+          <RedoButton />
+        </div>
+        <div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
             if (editState) {
               selection.positions.forEach((_, i) => {
@@ -473,24 +568,31 @@ function App() {
             <CameraButton isActive={!editState} />
           </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setControlPanelVisibilityState(true);
+            setStackState((stackState + 1) % 3);
           }}>
-            <GearButton />
+            <StackButton stackState={stackState} />
           </div>
         </div>
         <div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setCurrentFloorLevel(Math.min(currentFloorLevel + 1, floors));
+            setControlPanelVisibilityState(true);
           }}>
-            <UpButton />
+            <GearButton />
           </div>
-          <div style={{height: 24, width: 24, textAlign: 'center'}}>
-            {currentFloorLevel}
-          </div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setCurrentFloorLevel(Math.max(currentFloorLevel - 1, 1));
-          }}>
-            <DownButton />
+          <div>
+            <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+              setCurrentFloorLevel(Math.min(currentFloorLevel + 1, floors));
+            }}>
+              <UpButton />
+            </div>
+            <div style={{height: 24, width: 24, textAlign: 'center'}}>
+              {currentFloorLevel}
+            </div>
+            <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+              setCurrentFloorLevel(Math.max(currentFloorLevel - 1, 1));
+            }}>
+              <DownButton />
+            </div>
           </div>
         </div>
       </div>
