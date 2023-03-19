@@ -431,12 +431,58 @@ function App() {
                 }
               };
 
+              const renderFullSquareSelect = () => {
+                const isWallSelected = selectionNodeState === NodeTypes.WALL;
+                const keyBaseState = key - graph.matrixScale - 1;
+                for (let i = 0; i < 9; i++) {
+                  if (i === 4) continue;
+                  if (
+                    graphPosition.x === 0 &&
+                    (i === 0 || i === 3 || i === 6)
+                  ) continue;
+                  if (
+                    graphPosition.x === graph.matrixScale - 1 &&
+                    (i === 2 || i === 5 || i === 8)
+                  ) continue;
+                  if (
+                    graphPosition.y === graph.matrixScale - 1 &&
+                    i > 5
+                  ) continue;
+                  const y = Math.floor(i / 3);
+                  if (y > graph.matrixScale) continue;
+                  const keyIndex =
+                    keyBaseState +
+                    (i % 3) +
+                    graph.matrixScale * y;
+                  const nodeState = graph.matrix.get(keyIndex);
+                  if (
+                    isWallSelected
+                      ? nodeState !== NodeTypes.WALL
+                      : nodeState === NodeTypes.WALL
+                  ) continue;
+                  if (nodeState === NodeTypes.START) continue;
+                  if (nodeState === NodeTypes.GOAL) continue;
+                  selection.positions.set(
+                    keyIndex,
+                    new Vector3(
+                      graphPosition.x,
+                      i,
+                      graphPosition.z
+                    )
+                  );
+                  updateNode(keyIndex, NodeTypes.WALL);
+                }
+              };
+
               switch (stackState) {
                 case StackButtonState.HORIZONTAL:
                   renderHorizontalSelect();
                   break;
                 case StackButtonState.VERTICAL:
                   renderVerticalSelect();
+                  break;
+                case StackButtonState.FULL_SQUARE:
+                  renderFullSquareSelect();
                   break;
                 case StackButtonState.SINGLE:
                 default:
