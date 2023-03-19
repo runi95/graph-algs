@@ -575,7 +575,9 @@ function App() {
             <CameraButton isActive={!editState} />
           </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setStackState((stackState + 1) % 3);
+            setStackState(
+              (stackState + 1) % (Object.keys(StackButtonState).length / 2)
+            );
           }}>
             <StackButton stackState={stackState} />
           </div>

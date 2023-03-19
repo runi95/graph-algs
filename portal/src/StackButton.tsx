@@ -14,12 +14,13 @@ interface StackButtonProps {
 
 function StackButton(props: StackButtonProps) {
   switch (props.stackState) {
-    case StackButtonState.SINGLE:
-      return <SingleStackButton />;
     case StackButtonState.VERTICAL:
       return <VerticalStackButton />;
     case StackButtonState.HORIZONTAL:
       return <HorizontalStackButton />;
+    case StackButtonState.SINGLE:
+    default:
+      return <SingleStackButton />;
   }
 }
 
