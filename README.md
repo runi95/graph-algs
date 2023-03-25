@@ -1,6 +1,6 @@
 # Graph Algs
 
-A simple visualization tool used to render different pathfinding algorithms
+A 3D visualization tool used to render different pathfinding algorithms
 
 ## Currently supported pathfinding algorithms
 - A\*
@@ -15,7 +15,7 @@ A simple visualization tool used to render different pathfinding algorithms
 - Octile distance
 - Chebyshev distance
 
-## Preview 
+## Preview
 
 ![Preview Image](/images/Preview-Image-1.png)
 ![Preview Image](/images/Preview-Image-2.png)
