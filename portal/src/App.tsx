@@ -187,6 +187,8 @@ function App() {
     graph: Graph,
     instancedMesh: InstancedMesh
   ) {
+    if (options.algorithm.value === 'none') return;
+
     const data = JSON.stringify({
       ...graph,
       matrix: Object.fromEntries(Array.from(graph.matrix.entries()).filter(
@@ -663,6 +665,14 @@ function App() {
         heuristicOptions={options?.heuristics}
         setHeuristic={
           (heuristic: Heuristic) => { setOptions({...options, heuristic}); }}
+        clearVisitedNodes={() => {
+          graph.matrix.forEach((node: NodeTypes, key: number) => {
+            if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
+              graph.matrix.delete(key);
+            }
+          });
+          updateGraph(instancedMesh);
+        }}
         heuristic={options?.heuristic}
         templates={options?.templates}
         setTemplate={(template: string) => {

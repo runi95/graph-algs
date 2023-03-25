@@ -13,6 +13,7 @@ interface ControlPanelProps {
   heuristic: any;
   templates?: any[];
   setTemplate: (template: any) => void;
+  clearVisitedNodes: () => void;
 }
 
 function ControlPanel(props: ControlPanelProps) {
@@ -39,6 +40,19 @@ function ControlPanel(props: ControlPanelProps) {
               checked={algorithm.value === props.algorithm.value}
               onChange={() => { props.setAlgorithm(algorithm); }}
             />)}
+          <RadioButton
+              key='none'
+              label='None'
+              checked={props?.algorithm?.value === 'none'}
+              onChange={() => {
+                props.setAlgorithm({
+                  label: 'None',
+                  usesHeuristics: false,
+                  value: 'none'
+                });
+                props.clearVisitedNodes();
+              }}
+            />
           <p>Heuristic:</p>
           {props?.heuristicOptions?.map((heuristic) =>
             <RadioButton
