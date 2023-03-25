@@ -11,7 +11,7 @@ function VerticalStackButton(_props: unknown) {
         <rect stroke='#888' strokeWidth='16' fill='#555' x='62' y='340' width='100' height='100' />
         <rect stroke='#7bf' strokeWidth='16' fill='currentcolor' x='206' y='340' width='100' height='100' />
         <rect stroke='#888' strokeWidth='16' fill='#555' x='350' y='340' width='100' height='100' />
-        <rect x="0" y="20" width="512" height="472" stroke="#888" fill="transparent" stroke-width="40"/>
+        <rect x="0" y="20" width="512" height="472" stroke="#888" fill="transparent" strokeWidth="40"/>
       </g>
     </svg>
   );
