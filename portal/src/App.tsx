@@ -115,7 +115,7 @@ function App() {
     } else {
       // Reset visited and solution states
       graph.matrix.forEach((node: NodeTypes, key: number) => {
-        if (node !== NodeTypes.VISITED && node !== NodeTypes.SOLUTION) {
+        if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
           graph.matrix.delete(key);
         }
       });
