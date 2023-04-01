@@ -1,7 +1,7 @@
 import {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
-import {DoubleSide, type InstancedMesh, Vector3, Color, Matrix4} from 'three';
+import {type InstancedMesh, Vector3, Color, Matrix4} from 'three';
 import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
@@ -563,7 +563,7 @@ function App() {
           }}
         >
           <planeGeometry args={[graph.matrixScale, graph.matrixScale]} />
-          <meshBasicMaterial side={DoubleSide} visible={false} />
+          <meshBasicMaterial visible={false} />
         </mesh>
         <gridHelper
           rotation={[-Math.PI / 2, 0, 0]}
@@ -579,7 +579,6 @@ function App() {
           </boxGeometry>
           <meshBasicMaterial
             attach='material'
-            side={DoubleSide}
             transparent={true}
             alphaTest={0.1}
             vertexColors
