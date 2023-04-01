@@ -686,16 +686,24 @@ function App() {
             .then((data) => {
               graph.matrix.clear();
 
-              for (let i = 0; i < data.matrix.length; i++) {
-                const node = data.matrix[i];
-                if (node === 'Wall') {
-                  graph.matrix.set(i, NodeTypes.WALL);
-                } else if (node === 'Start') {
-                  graph.matrix.set(i, NodeTypes.START);
-                } else if (node === 'Goal') {
-                  graph.matrix.set(i, NodeTypes.GOAL);
-                }
+              const matrixKeys = Object.keys(data.matrix);
+              for (let i = 0; i < matrixKeys.length; i++) {
+                const node = data.matrix[matrixKeys[i]];
+                graph.matrix.set(Number(matrixKeys[i]), node);
               }
+
+              graph.matrix.set(
+                graph.start.x +
+                graph.start.y * graph.matrixScale +
+                graph.start.z * graph.matrixScalePow,
+                NodeTypes.START
+              );
+              graph.matrix.set(
+                graph.goal.x +
+                graph.goal.y * graph.matrixScale +
+                graph.goal.z * graph.matrixScalePow,
+                NodeTypes.GOAL
+              );
 
               debouncedSearch(options, graph, instancedMesh);
             })
