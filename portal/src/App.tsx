@@ -1,7 +1,7 @@
 import {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import debounce from 'lodash.debounce';
 import {Canvas} from '@react-three/fiber';
-import {type InstancedMesh, Vector3, Color, Matrix4} from 'three';
+import {type InstancedMesh, Vector3, Color, Matrix4, NotEqualDepth} from 'three';
 import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
@@ -582,6 +582,7 @@ function App() {
             transparent={true}
             alphaTest={0.1}
             vertexColors
+            depthFunc={NotEqualDepth}
           />
         </instancedMesh>
         <OrbitControls
