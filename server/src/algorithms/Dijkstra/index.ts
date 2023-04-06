@@ -1,69 +1,63 @@
 import {PriorityQueue} from '../priorityQueue';
 import {AStarNode} from '../AStar/node';
-import {Graph} from '../graph';
+import {ClientMatrix, Graph} from '../graph';
 import {Point} from '../point';
 import {NoValidPathError} from '../noValidPathError';
 
 export class Dijkstra<P extends Point> {
   public static readonly label = 'Dijkstra';
   public static readonly usesHeuristics = false;
+  private readonly graph: Graph<P, AStarNode<P>>;
 
-  private readonly dimensions: number[];
-  private graph: AStarNode<P>[];
-
-  constructor(graph: Graph<P>) {
-    this.dimensions = graph.dimensions;
-    this.graph = graph.nodes.map(p => new AStarNode(p));
+  constructor(clientMatrix: ClientMatrix<P>) {
+    this.graph = new Graph(
+      clientMatrix.dimensions,
+      clientMatrix.nodes.map(n => new AStarNode(n))
+    );
   }
 
   private neighbors(node: AStarNode<P>): AStarNode<P>[] {
     const ret = [];
     const parent = node.parent;
-    let mul = 1;
-    const dMul = [];
-    for (let i = this.dimensions.length - 1; i >= 0; i--) {
-      dMul.push(mul);
-      mul *= this.dimensions[i];
-    }
 
     let pointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      pointRef += node.node.point.coords[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      pointRef += node.point.coords[i] * this.graph.dMul[i];
     }
 
     if (parent) {
       const d = [];
-      for (let i = 0; i < this.dimensions.length; i++) {
-        const dx = node.node.point.coords[i] - parent.node.point.coords[i];
+      for (let i = 0; i < this.graph.dimensions.length; i++) {
+        const dx = node.point.coords[i] - parent.point.coords[i];
         d.push((dx) / Math.max(Math.abs(dx), 1));
       }
 
       for (let di = 0; di < d.length; di++) {
         if (d[di] !== 0) {
-          for (let i = 0; i < this.dimensions.length; i++) {
-
+          for (let i = 0; i < this.graph.dimensions.length; i++) {
             if (i === di) continue;
-            if (node.node.point.coords[i] - 1 >= 0) {
-              const n = this.graph[pointRef - dMul[i]];
-              if (!n.node.isWall) {
+            if (node.point.coords[i] - 1 >= 0) {
+              const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
+              if (!n.isWall) {
                 ret.push(n);
               }
             }
 
-            if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
-              const n = this.graph[pointRef + dMul[i]];
-              if (!n.node.isWall) {
+            if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
+              const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
+              if (!n.isWall) {
                 ret.push(n);
               }
             }
           }
 
           if (
-            node.node.point.coords[di] + d[di] < this.dimensions[di] &&
-            node.node.point.coords[di] + d[di] >= 0
+            node.point.coords[di] + d[di] < this.graph.dimensions[di] &&
+            node.point.coords[di] + d[di] >= 0
           ) {
-            const n = this.graph[pointRef + (d[di] * dMul[di])];
-            if (!n.node.isWall) {
+            const n = 
+              this.graph.nodes[pointRef + (d[di] * this.graph.dMul[di])];
+            if (!n.isWall) {
               ret.push(n);
             }
           }
@@ -72,17 +66,17 @@ export class Dijkstra<P extends Point> {
         }
       }
     } else {
-      for (let i = 0; i < this.dimensions.length; i++) {
-        if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
-          const n = this.graph[pointRef + dMul[i]];
-          if (!n.node.isWall) {
+      for (let i = 0; i < this.graph.dimensions.length; i++) {
+        if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
+          const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
+          if (!n.isWall) {
             ret.push(n);
           }
         }
 
-        if (node.node.point.coords[i] - 1 >= 0) {
-          const n = this.graph[pointRef - dMul[i]];
-          if (!n.node.isWall) {
+        if (node.point.coords[i] - 1 >= 0) {
+          const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
+          if (!n.isWall) {
             ret.push(n);
           }
         }
@@ -94,26 +88,20 @@ export class Dijkstra<P extends Point> {
 
   public search(source: number[], destination: number[]) {
     const openHeap = new PriorityQueue<AStarNode<P>>();
-    let mul = 1;
-    const dMul = [];
-    for (let i = this.dimensions.length - 1; i >= 0; i--) {
-      dMul.push(mul);
-      mul *= this.dimensions[i];
-    }
 
     let sourcePointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      sourcePointRef += source[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      sourcePointRef += source[i] * this.graph.dMul[i];
     }
 
-    openHeap.add(this.graph[sourcePointRef]);
+    openHeap.add(this.graph.nodes[sourcePointRef]);
 
     let destinationPointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      destinationPointRef += destination[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      destinationPointRef += destination[i] * this.graph.dMul[i];
     }
 
-    const destinationNode = this.graph[destinationPointRef];
+    const destinationNode = this.graph.nodes[destinationPointRef];
     while (openHeap.size > 0) {
       const currentNode = openHeap.poll() as AStarNode<P>;
 
@@ -121,15 +109,15 @@ export class Dijkstra<P extends Point> {
         let curr = currentNode.parent as AStarNode<P>;
         const ret = [];
         while (curr.parent) {
-          ret.push(curr.node.point.coords);
+          ret.push(curr.point.coords);
           curr = curr.parent;
         }
 
         const visitedFilter =
           (node: AStarNode<P>) => node.visited && node !== currentNode;
-        const visited = this.graph
+        const visited = this.graph.nodes
           .filter(visitedFilter)
-          .map(n => n.node.point.coords);
+          .map(n => n.point.coords);
         return {solution: ret.reverse(), visited: visited};
       }
 
@@ -139,7 +127,7 @@ export class Dijkstra<P extends Point> {
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i];
 
-        if (neighbor.closed || neighbor.node.isWall) {
+        if (neighbor.closed || neighbor.isWall) {
           continue;
         }
 
@@ -162,9 +150,9 @@ export class Dijkstra<P extends Point> {
       }
     }
 
-    const visited = this.graph
+    const visited = this.graph.nodes
       .filter((node: AStarNode<P>) => node.visited)
-      .map(n => n.node.point.coords);
+      .map(n => n.point.coords);
     throw new NoValidPathError(visited);
   }
 }

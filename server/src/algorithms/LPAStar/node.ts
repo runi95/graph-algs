@@ -1,9 +1,7 @@
 import {Node} from '../node';
 import {Point} from '../point';
 
-export class LPAStarNode<P extends Point> {
-  public readonly node: Node<P>;
-
+export class LPAStarNode<P extends Point> extends Node<P> {
   public key: number[];
   public g: number;
   public rhs: number;
@@ -12,8 +10,8 @@ export class LPAStarNode<P extends Point> {
   public closed = false;
   public parent: LPAStarNode<P> | null = null;
 
-  constructor(node: Node<P>) {
-    this.node = node;
+  constructor(n: Node<P>) {
+    super(n.point, n.isWall);
     this.key = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
 
     this.g = Number.POSITIVE_INFINITY;

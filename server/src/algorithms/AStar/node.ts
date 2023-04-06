@@ -1,9 +1,7 @@
 import {Node} from '../node';
 import {Point} from '../point';
 
-export class AStarNode<P extends Point> {
-  public readonly node: Node<P>;
-
+export class AStarNode<P extends Point> extends Node<P> {
   public f = 0;
   public g = 0;
   public h = 0;
@@ -11,8 +9,8 @@ export class AStarNode<P extends Point> {
   public closed = false;
   public parent: this | null = null;
 
-  constructor(node: Node<P>) {
-    this.node = node;
+  constructor(n: Node<P>) {
+    super(n.point, n.isWall);
   }
 
   public valueOf(): number {

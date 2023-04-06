@@ -1,5 +1,5 @@
 import {Heuristics} from '../../heuristics/heuristicsInterface';
-import {Graph} from '../graph';
+import {ClientMatrix, Graph} from '../graph';
 import {NoValidPathError} from '../noValidPathError';
 import {Point} from '../point';
 import {PriorityQueue} from '../priorityQueue';
@@ -8,84 +8,72 @@ import {LPAStarNode} from './node';
 export class LPAStar<P extends Point> {
   public static readonly label = 'LPA*';
   public static readonly usesHeuristics = true;
+  private readonly graph: Graph<P, LPAStarNode<P>>;
 
-  private readonly dimensions: number[];
-  private graph: LPAStarNode<P>[];
-
-  constructor(graph: Graph<P>) {
-    this.dimensions = graph.dimensions;
-    this.graph = graph.nodes.map(p => new LPAStarNode(p));
+  constructor(clientMatrix: ClientMatrix<P>) {
+    this.graph = new Graph(
+      clientMatrix.dimensions,
+      clientMatrix.nodes.map(n => new LPAStarNode(n))
+    );
   }
 
   private isPathable(path: number[]): boolean {
     for (let i = 0; i < path.length; i++) {
       if (path[i] < 0) return false;
-      if (path[i] >= this.dimensions[i]) return false;
-    }
-
-    let mul = 1;
-    const dMul = [];
-    for (let i = this.dimensions.length - 1; i >= 0; i--) {
-      dMul.push(mul);
-      mul *= this.dimensions[i];
+      if (path[i] >= this.graph.dimensions[i]) return false;
     }
 
     let pointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      pointRef += path[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      pointRef += path[i] * this.graph.dMul[i];
     }
 
-    const n = this.graph[pointRef];
-    return !n.node.isWall && !n.visited;
+    const n = this.graph.nodes[pointRef];
+    return !n.isWall && !n.visited;
   }
 
   private neighbors(node: LPAStarNode<P>): LPAStarNode<P>[] {
     const ret = [];
     const parent = node.parent;
-    let mul = 1;
-    const dMul = [];
-    for (let i = this.dimensions.length - 1; i >= 0; i--) {
-      dMul.push(mul);
-      mul *= this.dimensions[i];
-    }
 
     let pointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      pointRef += node.node.point.coords[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      pointRef += node.point.coords[i] * this.graph.dMul[i];
     }
 
     if (parent) {
       const d = [];
-      for (let i = 0; i < this.dimensions.length; i++) {
-        const dx = node.node.point.coords[i] - parent.node.point.coords[i];
+      for (let i = 0; i < this.graph.dimensions.length; i++) {
+        const dx = node.point.coords[i] - parent.point.coords[i];
         d.push(dx / Math.max(Math.abs(dx), 1));
       }
 
       for (let di = 0; di < d.length; di++) {
         if (d[di] !== 0) {
-          for (let i = 0; i < this.dimensions.length; i++) {
+          for (let i = 0; i < this.graph.dimensions.length; i++) {
             if (i === di) continue;
-            if (node.node.point.coords[i] - 1 >= 0) {
-              const n = this.graph[pointRef - dMul[i]];
-              if (!n.node.isWall && !n.visited) {
+            if (node.point.coords[i] - 1 >= 0) {
+              const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
+              if (!n.isWall && !n.visited) {
                 ret.push(n);
               }
             }
 
-            if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
-              const n = this.graph[pointRef + dMul[i]];
-              if (!n.node.isWall && !n.visited) {
+            if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
+              const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
+              if (!n.isWall && !n.visited) {
                 ret.push(n);
               }
             }
           }
 
           if (
-            node.node.point.coords[di] + d[di] < this.dimensions[di] &&
-            node.node.point.coords[di] + d[di] >= 0
+            node.point.coords[di] + d[di] < this.graph.dimensions[di] &&
+            node.point.coords[di] + d[di] >= 0
           ) {
-            const n = this.graph[pointRef + (d[di] * dMul[di])];
-            if (!n.node.isWall && !n.visited) {
+            const n =
+              this.graph.nodes[pointRef + (d[di] * this.graph.dMul[di])];
+            if (!n.isWall && !n.visited) {
               ret.push(n);
             }
           }
@@ -94,17 +82,17 @@ export class LPAStar<P extends Point> {
         }
       }
     } else {
-      for (let i = 0; i < this.dimensions.length; i++) {
-        if (node.node.point.coords[i] + 1 < this.dimensions[i]) {
-          const n = this.graph[pointRef + dMul[i]];
-          if (!n.node.isWall && !n.visited) {
+      for (let i = 0; i < this.graph.dimensions.length; i++) {
+        if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
+          const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
+          if (!n.isWall && !n.visited) {
             ret.push(n);
           }
         }
 
-        if (node.node.point.coords[i] - 1 >= 0) {
-          const n = this.graph[pointRef - dMul[i]];
-          if (!n.node.isWall && !n.visited) {
+        if (node.point.coords[i] - 1 >= 0) {
+          const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
+          if (!n.isWall && !n.visited) {
             ret.push(n);
           }
         }
@@ -119,7 +107,7 @@ export class LPAStar<P extends Point> {
     destination: LPAStarNode<P>,
     heuristic: Heuristics<P>
   ) {
-    const h = heuristic.calculate(node.node.point, destination.node.point);
+    const h = heuristic.calculate(node.point, destination.point);
     return [
       Math.min(node.g, node.rhs + h),
       Math.min(node.g, node.rhs),
@@ -131,26 +119,19 @@ export class LPAStar<P extends Point> {
     destination: number[],
     heuristic: Heuristics<P>
   ) {
-    let mul = 1;
-    const dMul = [];
-    for (let i = this.dimensions.length - 1; i >= 0; i--) {
-      dMul.push(mul);
-      mul *= this.dimensions[i];
-    }
-
     let sourcePointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      sourcePointRef += source[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      sourcePointRef += source[i] * this.graph.dMul[i];
     }
 
-    const startNode = this.graph[sourcePointRef];
+    const startNode = this.graph.nodes[sourcePointRef];
 
     let destinationPointRef = 0;
-    for (let i = 0; i < this.dimensions.length; i++) {
-      destinationPointRef += destination[i] * dMul[i];
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      destinationPointRef += destination[i] * this.graph.dMul[i];
     }
 
-    const destinationNode = this.graph[destinationPointRef];
+    const destinationNode = this.graph.nodes[destinationPointRef];
 
     const compareKey = (a: LPAStarNode<P>, b: LPAStarNode<P>) => {
       if (a.key[0] > b.key[0]) {
@@ -178,8 +159,8 @@ export class LPAStar<P extends Point> {
 
     startNode.key = [
       heuristic.calculate(
-        startNode.node.point,
-        destinationNode.node.point
+        startNode.point,
+        destinationNode.point
       ), 0];
     openHeap.add(startNode);
 
@@ -247,7 +228,7 @@ export class LPAStar<P extends Point> {
       let curr = destinationNode.parent as LPAStarNode<P>;
       const ret: number[][] = [];
       while (curr.parent) {
-        ret.push(curr.node.point.coords);
+        ret.push(curr.point.coords);
         curr = curr.parent;
       }
 
@@ -255,15 +236,15 @@ export class LPAStar<P extends Point> {
         node.visited &&
         node !== startNode &&
         node !== destinationNode;
-      const visited = this.graph
+      const visited = this.graph.nodes
         .filter(visitedFilter)
-        .map((n) => (n.node.point.coords));
+        .map((n) => (n.point.coords));
       return {solution: ret.reverse(), visited: visited};
     }
 
-    const visited = this.graph
+    const visited = this.graph.nodes
       .filter((node: LPAStarNode<P>) => node.visited && node !== startNode)
-      .map(n => n.node.point.coords);
+      .map(n => n.point.coords);
     throw new NoValidPathError(visited);
   }
 }
