@@ -17,21 +17,6 @@ export class LPAStar<P extends Point> {
     );
   }
 
-  private isPathable(path: number[]): boolean {
-    for (let i = 0; i < path.length; i++) {
-      if (path[i] < 0) return false;
-      if (path[i] >= this.graph.dimensions[i]) return false;
-    }
-
-    let pointRef = 0;
-    for (let i = 0; i < this.graph.dimensions.length; i++) {
-      pointRef += path[i] * this.graph.dMul[i];
-    }
-
-    const n = this.graph.nodes[pointRef];
-    return !n.isWall && !n.visited;
-  }
-
   private neighbors(node: LPAStarNode<P>): LPAStarNode<P>[] {
     const ret = [];
     const parent = node.parent;
