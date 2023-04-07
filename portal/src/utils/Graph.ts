@@ -9,12 +9,17 @@ export class Graph {
   public readonly start: Vector3;
   public readonly goal: Vector3;
 
-  constructor(matrixScale: number, start: Vector3, goal: Vector3) {
+  constructor(
+    matrixScale: number,
+    height: number,
+    start: Vector3,
+    goal: Vector3
+  ) {
     this.start = start;
     this.goal = goal;
     this.matrixScale = matrixScale;
     this.matrixScalePow = matrixScale * matrixScale;
-    this.matrixSize = this.matrixScalePow * matrixScale;
+    this.matrixSize = this.matrixScalePow * height;
     this.matrix.set(
       start.x +
       start.y * matrixScale +

@@ -92,7 +92,7 @@ function App() {
   ] = useState(false);
   const [options, setOptions] = useState<Options>(null!);
   const graph = useMemo(
-    () => new Graph(initialMatrixScale, initialStart, initialGoal),
+    () => new Graph(initialMatrixScale, floors, initialStart, initialGoal),
     []
   );
   const colorArray = useMemo(() => Float32Array.from(
