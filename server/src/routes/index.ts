@@ -45,6 +45,7 @@ enum NodeTypes {
 interface RunModel {
   matrix: Record<number, NodeTypes>;
   matrixScale: number;
+  matrixHeight: number;
   matrixScalePow: number;
   matrixSize: number;
   start: Vector3D;
@@ -61,6 +62,7 @@ router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Respo
   const {
     matrix,
     matrixScale,
+    matrixHeight,
     matrixScalePow,
     matrixSize,
     start,
@@ -94,7 +96,7 @@ router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Respo
     nodes.push(new Node(new Point3D(x, y, z), node === NodeTypes.WALL));
   }
   const alg = new Algorithm<Point2D>({
-    dimensions: [matrixScale, matrixScale, matrixScale],
+    dimensions: [matrixScale, matrixScale, matrixHeight],
     nodes
   });
 
