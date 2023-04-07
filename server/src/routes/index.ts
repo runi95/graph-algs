@@ -6,7 +6,6 @@ import {JPS} from '../algorithms/JPS';
 import {Dijkstra} from '../algorithms/Dijkstra';
 import {LPAStar} from '../algorithms/LPAStar';
 import {Node} from '../algorithms/node';
-import {Point2D} from '../algorithms/point2d';
 import {EuclideanDistance} from '../heuristics/euclideanDistance';
 import {OctileDistance} from '../heuristics/octileDistance';
 import {ManhattanDistance} from '../heuristics/manhattanDistance';
@@ -95,15 +94,15 @@ router.post('/run', asyncHandler(async (req: CustomRequest<RunModel>, res: Respo
     const z = Math.floor(i / matrixScalePow);
     nodes.push(new Node(new Point3D(x, y, z), node === NodeTypes.WALL));
   }
-  const alg = new Algorithm<Point2D>({
+  const alg = new Algorithm<Point3D>({
     dimensions: [matrixScale, matrixScale, matrixHeight],
     nodes
   });
 
   try {
     const data = alg.search(
-      [start.x, start.y, start.z],
-      [goal.x, goal.y, goal.z],
+      new Point3D(start.x, start.y, start.z),
+      new Point3D(goal.x, goal.y, goal.z),
       h
     );
     const executionTime = process.hrtime(startTime)[1] / 1000000;

@@ -24,23 +24,19 @@ export class JPS<P extends Point> {
     const ret = [];
     const parent = node.parent;
 
-    let pointRef = 0;
-    for (let i = 0; i < this.graph.dimensions.length; i++) {
-      pointRef += node.point.coords[i] * this.graph.dMul[i];
-    }
-
+    const pointRef = this.graph.point2Index(node.point);
     if (parent) {
       const d = [];
       for (let i = 0; i < this.graph.dimensions.length; i++) {
         const dx = node.point.coords[i] - parent.point.coords[i];
-        d.push((dx) / Math.max(Math.abs(dx), 1));
+        d.push(dx / Math.max(Math.abs(dx), 1));
       }
 
       for (let di = 0; di < d.length; di++) {
         if (d[di] !== 0) {
           for (let i = 0; i < this.graph.dimensions.length; i++) {
             if (i === di) continue;
-            if (node.point.coords[i] - 1 >= 0) {
+            if (node.point.coords[i] > 0) {
               const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
               if (!n.isWall) {
                 ret.push(n);
@@ -78,7 +74,7 @@ export class JPS<P extends Point> {
           }
         }
 
-        if (node.point.coords[i] - 1 >= 0) {
+        if (node.point.coords[i] > 0) {
           const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
           if (!n.isWall) {
             ret.push(n);
@@ -196,25 +192,14 @@ export class JPS<P extends Point> {
   }
 
   public search(
-    source: number[],
-    destination: number[],
+    source: P,
+    destination: P,
     heuristic: Heuristics<P>
   ) {
     const openHeap = new PriorityQueue<AStarNode<P>>();
+    openHeap.add(this.graph.get(source));
 
-    let sourcePointRef = 0;
-    for (let i = 0; i < this.graph.dimensions.length; i++) {
-      sourcePointRef += source[i] * this.graph.dMul[i];
-    }
-
-    openHeap.add(this.graph.nodes[sourcePointRef]);
-
-    let destinationPointRef = 0;
-    for (let i = 0; i < this.graph.dimensions.length; i++) {
-      destinationPointRef += destination[i] * this.graph.dMul[i];
-    }
-
-    const destinationNode = this.graph.nodes[destinationPointRef];
+    const destinationNode = this.graph.get(destination);
     while (openHeap.size > 0) {
       const currentNode = openHeap.poll() as AStarNode<P>;
       currentNode.closed = true;
@@ -227,7 +212,7 @@ export class JPS<P extends Point> {
           curr = curr.parent;
         }
 
-        path.push(source);
+        path.push(source.coords);
 
         const visitedFilter = 
           (node: AStarNode<P>) => node.visited && node !== currentNode;

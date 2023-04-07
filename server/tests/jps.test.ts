@@ -18,8 +18,11 @@ test('should find a valid 2D path from source to destination', t => {
     };
 
     // Basic
-    t.snapshot(new JPS<Point2D>(graph)
-        .search([1, 18], [30, 1], new ManhattanDistance()));
+    t.snapshot(new JPS<Point2D>(graph).search(
+        new Point2D(1, 18),
+        new Point2D(30, 1),
+        new ManhattanDistance()
+    ));
 
     const mazeFile = fs.readFileSync(`${__dirname}/../templates/Maze.json`);
     const maze = JSON.parse(mazeFile.toString('utf8'));
@@ -29,6 +32,9 @@ test('should find a valid 2D path from source to destination', t => {
                 .flat();
 
     // Advanced
-    t.snapshot(new JPS<Point2D>({dimensions, nodes})
-        .search([1, 18], [30, 1], new ManhattanDistance()));
+    t.snapshot(new JPS<Point2D>({dimensions, nodes}).search(
+        new Point2D(1, 18),
+        new Point2D(30, 1),
+        new ManhattanDistance()
+    ));
 });
