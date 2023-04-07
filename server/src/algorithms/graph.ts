@@ -17,7 +17,7 @@ export class Graph<P extends Point, N extends Node<P>> {
 
         let mul = 1;
         const dMul = [];
-        for (let i = this.dimensions.length - 1; i >= 0; i--) {
+        for (let i = 0; i < this.dimensions.length; i++) {
             dMul.push(mul);
             mul *= this.dimensions[i];
         }
