@@ -87,106 +87,118 @@ export class JPS<P extends Point> {
   }
 
   private jump(
-    neighbor: number[],
+    neighbor: P,
     current: AStarNode<P>,
     destination: AStarNode<P>
-  ): number[] | null {
+  ): P | null {
     if (!neighbor) return null;
 
     const d: number[] = [];
     for (let i = 0; i < this.graph.dimensions.length; i++) {
-      d.push(neighbor[i] - current.point.coords[i]);
+      d.push(neighbor.coords[i] - current.point.coords[i]);
     }
 
-    for (let i = 0; i < neighbor.length; i++) {
-      if (neighbor[i] < 0) return null;
-      if (neighbor[i] >= this.graph.dimensions[i]) return null;
+    for (let i = 0; i < neighbor.coords.length; i++) {
+      if (neighbor.coords[i] < 0) return null;
+      if (neighbor.coords[i] >= this.graph.dimensions[i]) return null;
     }
 
-    let pointRef = 0;
-    for (let i = 0; i < this.graph.dimensions.length; i++) {
-      pointRef += neighbor[i] * this.graph.dMul[i];
-    }
-
+    const pointRef = this.graph.point2Index(neighbor);
     if (this.graph.nodes[pointRef].isWall) {
       return null;
     }
 
-    if (neighbor.every((v, i) => v === destination.point.coords[i])) {
+    if (neighbor.coords.every((v, i) => v === destination.point.coords[i])) {
       return neighbor;
     }
 
     let noDir = true;
     for (let di = 0; di < d.length; di++) {
-      if (d[di] !== 0) {
-        noDir = false;
-        for (let i = 0; i < this.graph.dimensions.length; i++) {
-          if (i === di) continue;
-          if (neighbor[i] - 1 >= 0) {
-            const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
-            if (!n.isWall) {
-              let checkPointRef = pointRef - this.graph.dMul[i];
-              for (let j = 0; j < this.graph.dimensions.length; j++) {
-                if (j === i) continue;
-                checkPointRef -= d[j] * this.graph.dMul[j];
-              }
+      if (d[di] === 0) continue;
 
-              if (
-                checkPointRef < 0 ||
-                checkPointRef >= this.graph.nodes.length ||
-                this.graph.nodes[checkPointRef].isWall
-              ) {
-                return neighbor;
-              }
+      noDir = false;
+      for (let i = 0; i < this.graph.dimensions.length; i++) {
+        if (i === di) continue;
+        if (neighbor.coords[i] > 0) {
+          const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
+          if (!n.isWall) {
+            let checkPointRef = pointRef - this.graph.dMul[i];
+            for (let j = 0; j < this.graph.dimensions.length; j++) {
+              if (j === i) continue;
+              checkPointRef -= d[j] * this.graph.dMul[j];
             }
-          }
 
-          if (neighbor[i] + 1 < this.graph.dimensions[i]) {
-            const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
-            if (!n.isWall) {
-              let checkPointRef = pointRef + this.graph.dMul[i];
-              for (let j = 0; j < this.graph.dimensions.length; j++) {
-                if (j === i) continue;
-                checkPointRef -= d[j] * this.graph.dMul[j];
-              }
-
-              if (
-                checkPointRef < 0 ||
-                checkPointRef >= this.graph.nodes.length ||
-                this.graph.nodes[checkPointRef].isWall
-              ) {
-                return neighbor;
-              }
+            if (
+              checkPointRef < 0 ||
+              checkPointRef >= this.graph.nodes.length ||
+              this.graph.nodes[checkPointRef].isWall
+            ) {
+              return neighbor;
             }
           }
         }
 
-        if (di === 0) {
-          break;
-        } else {
-          if (this.jump(neighbor.map((v, i) => {
-            if (i === 0) return v + 1;
-            return v;
-          }), this.graph.nodes[pointRef], destination) ||
-            this.jump(neighbor.map((v, i) => {
-              if (i === 0) return v - 1;
-              return v;
-            }), this.graph.nodes[pointRef], destination)
-          ) {
-            return neighbor;
+        if (neighbor.coords[i] + 1 < this.graph.dimensions[i]) {
+          const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
+          if (!n.isWall) {
+            let checkPointRef = pointRef + this.graph.dMul[i];
+            for (let j = 0; j < this.graph.dimensions.length; j++) {
+              if (j === i) continue;
+              checkPointRef -= d[j] * this.graph.dMul[j];
+            }
+
+            if (
+              checkPointRef < 0 ||
+              checkPointRef >= this.graph.nodes.length ||
+              this.graph.nodes[checkPointRef].isWall
+            ) {
+              return neighbor;
+            }
           }
         }
-
-        break;
       }
+
+      if (di === 0) {
+        break;
+      } else {
+        if (
+          this.jump(
+            this.graph.nodes[pointRef + 1].point,
+            this.graph.nodes[pointRef],
+            destination
+          ) ||
+          this.jump(
+            this.graph.nodes[pointRef - 1].point,
+            this.graph.nodes[pointRef],
+            destination
+          )
+        ) {
+          return neighbor;
+        }
+      }
+
+      break;
     }
 
     if (noDir) {
       throw new Error('Only horizontal and vertical movements are allowed');
     }
 
+    let newPointRef = pointRef;
+    for (let i = 0; i < this.graph.dimensions.length; i++) {
+      if (d[i] < 0 && neighbor.coords[i] === 0) return null;
+      if (
+        d[i] > 0 &&
+        neighbor.coords[i] + 1 >= this.graph.dimensions[i]
+      ) return null;
+      newPointRef += d[i] * this.graph.dMul[i];
+    }
+
+    if (newPointRef < 0) return null;
+    if (newPointRef >= this.graph.nodes.length) return null;
     return this.jump(
-      neighbor.map((v, i) => v + d[i]), this.graph.nodes[pointRef],
+      this.graph.nodes[newPointRef].point,
+      this.graph.nodes[pointRef],
       destination
     );
   }
@@ -263,19 +275,13 @@ export class JPS<P extends Point> {
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i];
         const jumpPoint = this.jump(
-          neighbor.point.coords,
+          neighbor.point,
           currentNode,
           destinationNode,
         );
 
         if (jumpPoint) {
-          let jumpPointPointRef = 0;
-          for (let i = 0; i < this.graph.dimensions.length; i++) {
-            jumpPointPointRef += jumpPoint[i] * this.graph.dMul[i];
-          }
-
-          const jumpNode = this.graph.nodes[jumpPointPointRef];
-
+          const jumpNode = this.graph.get(jumpPoint);
           if (jumpNode.closed || jumpNode.isWall) {
             continue;
           }
