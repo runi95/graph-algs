@@ -24,14 +24,14 @@ export class Graph {
     this.matrixSize = this.matrixScalePow * this.matrixHeight;
     this.matrix.set(
       start.x +
-      start.y * matrixScale +
-      start.z * matrixScale * this.matrixHeight,
+      start.y * this.matrixScale +
+      start.z * this.matrixScalePow,
       NodeTypes.START
     );
     this.matrix.set(
       goal.x +
-      goal.y * matrixScale +
-      goal.z * matrixScale * this.matrixHeight,
+      goal.y * this.matrixScale +
+      goal.z * this.matrixScalePow,
       NodeTypes.GOAL
     );
   }
