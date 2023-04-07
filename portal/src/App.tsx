@@ -63,11 +63,11 @@ const tempColor = new Color();
 const tempMatrix = new Matrix4();
 const initialMatrixScale = 32;
 const floors = 32;
-const initialStart = new Vector3(1, 1, Math.max(floors - 1, 2));
+const initialStart = new Vector3(1, 1, Math.min(floors - 1, 2));
 const initialGoal = new Vector3(
   initialMatrixScale - 2,
   initialMatrixScale - 2,
-  Math.max(floors - 1, 8)
+  Math.min(floors - 1, 8)
 );
 const graphHistoryLinkedList =
   new HistoryLinkedList<Array<[number, NodeTypes]>>();
