@@ -10,11 +10,10 @@ import {ManhattanDistance} from '../src/heuristics/manhattanDistance';
 import {OctileDistance} from '../src/heuristics/octileDistance';
 
 test('should find a valid 2D path from source to destination', t => {
-    t.timeout(15000);
     const size = 100;
     const adjMatrix2D = [...Array(size)]
-        .map((_, x) => [...Array(size)]
-        .map((_, y) => new Node<Point2D>(new Point2D(x, y), false)))
+        .map((_, y) => [...Array(size)]
+        .map((_, x) => new Node<Point2D>(new Point2D(x, y), false)))
         .flat();
     const graph = {
         dimensions: [size, size],
@@ -100,12 +99,11 @@ test('should find a valid 2D path from source to destination', t => {
 });
 
 test('should find a valid 3D path from source to destination', t => {
-    t.timeout(15000);
     const size = 100;
     const adjMatrix3D = [...Array(size)]
-        .map((_, x) => [...Array(size)]
+        .map((_, z) => [...Array(size)]
         .map((_, y) => [...Array(size)]
-        .map((_, z) => new Node<Point3D>(new Point3D(x, y, z), false))))
+        .map((_, x) => new Node<Point3D>(new Point3D(x, y, z), false))))
         .flat()
         .flat();
     const graph = {
