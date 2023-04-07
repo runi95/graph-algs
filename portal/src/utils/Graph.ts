@@ -23,13 +23,13 @@ export class Graph {
     this.matrix.set(
       start.x +
       start.y * matrixScale +
-      start.z * matrixScale * matrixScale,
+      start.z * matrixScale * height,
       NodeTypes.START
     );
     this.matrix.set(
       goal.x +
       goal.y * matrixScale +
-      goal.z * matrixScale * matrixScale,
+      goal.z * matrixScale * height,
       NodeTypes.GOAL
     );
   }
