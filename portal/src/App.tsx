@@ -62,9 +62,7 @@ const typeToColorCode = (type: NodeTypes) => {
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
 const initialMatrixScale = 32;
-const initialMatrixScalePow = initialMatrixScale * initialMatrixScale;
 const floors = 32;
-const matrixSize = initialMatrixScalePow * floors;
 const initialStart = new Vector3(1, 1, 2);
 const initialGoal = new Vector3(
   initialMatrixScale - 2,
@@ -75,11 +73,6 @@ const graphHistoryLinkedList =
   new HistoryLinkedList<Array<[number, NodeTypes]>>();
 
 function App() {
-  const colorArray = useMemo(() => Float32Array.from(
-    new Array(matrixSize)
-      .fill(undefined, undefined)
-      .flatMap(
-        () => [...tempColor.set('#fff').toArray(), 1])), []);
   const debouncedSearch = useMemo(() =>
     debounce((options, graph, instancedMesh) => {
       search(options, graph, instancedMesh);
@@ -102,6 +95,11 @@ function App() {
     () => new Graph(initialMatrixScale, initialStart, initialGoal),
     []
   );
+  const colorArray = useMemo(() => Float32Array.from(
+    new Array(graph.matrixSize)
+      .fill(undefined, undefined)
+      .flatMap(
+        () => [...tempColor.set('#fff').toArray(), 1])), []);
   const selection = useMemo(() => ({
     positions: new Map<number, Vector3>(),
     activeState: false,
@@ -572,7 +570,7 @@ function App() {
         />
         <instancedMesh
           ref={instancedMeshRef}
-          args={[undefined, undefined, matrixSize]}
+          args={[undefined, undefined, graph.matrixSize]}
         >
           <boxGeometry args={[0.8, 0.8, 0.49]}>
             <instancedBufferAttribute attach='attributes-color' args={[colorArray, 4]} />
