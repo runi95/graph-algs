@@ -2,7 +2,6 @@ import {Router, Request, Response} from 'express';
 import * as fs from 'fs-extra';
 import {templatesDir} from '../config/config';
 import {AStar} from '../algorithms/aStar';
-import {JPS} from '../algorithms/JPS';
 import {Dijkstra} from '../algorithms/Dijkstra';
 import {LPAStar} from '../algorithms/LPAStar';
 import {Node} from '../algorithms/node';
@@ -17,7 +16,12 @@ import {Point3D} from '../algorithms/point3d';
 
 export const router = Router();
 
-const algorithms = [AStar, Dijkstra, JPS, LPAStar];
+const algorithms = [
+  AStar,
+  Dijkstra,
+  // JPS,
+  LPAStar
+];
 const heuristics = [
   ManhattanDistance,
   CanberraDistance,
