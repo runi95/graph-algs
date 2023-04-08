@@ -16,6 +16,7 @@ import DownButton from './buttons/DownButton';
 import {NodeTypes} from './utils/NodeTypes';
 import {Graph} from './utils/Graph';
 import StackButton, {StackButtonState} from './StackButton';
+import StopwatchButton from './buttons/StopwatchButton';
 
 interface Algorithm {
   label: string;
@@ -95,6 +96,19 @@ function App() {
     () => new Graph(initialMatrixScale, floors, initialStart, initialGoal),
     []
   );
+  const replay: {
+    solution: number[][];
+    solutionIndex: number;
+    visited: number[][];
+    visitedIndex: number;
+    interval: NodeJS.Timer;
+  } = useMemo(() => ({
+    visited: [],
+    visitedIndex: 0,
+    solution: [],
+    solutionIndex: 0,
+    interval: null!
+  }), []);
   const colorArray = useMemo(() => Float32Array.from(
     new Array(graph.matrixSize)
       .fill(undefined, undefined)
@@ -209,14 +223,16 @@ function App() {
         return await response.json();
       })
       .then((data: RunResponse) => {
+        const {solution, visited} = data;
+        replay.solution = solution;
+        replay.visited = visited;
+
         // Reset visited and solution states
         graph.matrix.forEach((node: NodeTypes, key: number) => {
           if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
             graph.matrix.delete(key);
           }
         });
-
-        const {solution, visited} = data;
 
         visited.forEach((p: number[]) => {
           graph.matrix.set(
@@ -626,6 +642,54 @@ function App() {
             );
           }}>
             <StackButton stackState={stackState} />
+          </div>
+          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+            clearInterval(replay.interval);
+            replay.solutionIndex = 0;
+            replay.visitedIndex = 0;
+
+            // Reset visited and solution states
+            graph.matrix.forEach((node: NodeTypes, key: number) => {
+              if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
+                graph.matrix.delete(key);
+              }
+            });
+
+            updateGraph(instancedMesh);
+
+            replay.interval = setInterval(() => {
+              const v = replay.visited[replay.visitedIndex++];
+              if (v !== undefined) {
+                const graphIndex = v[0] +
+                  graph.matrixScale * v[1] +
+                  graph.matrixScalePow * v[2];
+                graph.matrix.set(graphIndex, NodeTypes.VISITED);
+                const colorIndex = graphIndex * 4;
+                tempColor.set(
+                  typeToColorCode(NodeTypes.VISITED)
+                ).toArray(colorArray, colorIndex);
+                colorArray[colorIndex + 3] = selection.transparency;
+              } else {
+                const s = replay.solution[replay.solutionIndex++];
+                if (s !== undefined) {
+                  const graphIndex = s[0] +
+                    graph.matrixScale * s[1] +
+                    graph.matrixScalePow * s[2];
+                  graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
+                  const colorIndex = graphIndex * 4;
+                  tempColor.set(
+                    typeToColorCode(NodeTypes.SOLUTION)
+                  ).toArray(colorArray, colorIndex);
+                  colorArray[colorIndex + 3] = 1;
+                } else {
+                  clearInterval(replay.interval);
+                }
+              }
+
+              instancedMesh.geometry.attributes.color.needsUpdate = true;
+            }, 100);
+          }}>
+            <StopwatchButton />
           </div>
         </div>
         <div>
