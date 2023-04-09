@@ -21,8 +21,8 @@ export const router = Router();
 const algorithms = [
   DepthFirstSearch,
   BreathFirstSearch,
-  AStar,
   Dijkstra,
+  AStar,
   // JPS,
   LPAStar
 ];
