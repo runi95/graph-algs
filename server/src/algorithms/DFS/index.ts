@@ -38,15 +38,6 @@ export class DepthFirstSearch<P extends Point> {
     return ret;
   }
 
-  public recursiveSearch(n: AStarNode<P>) {
-    n.visited = true;
-    const neighbors = this.neighbors(n);
-    for (const neighbor of neighbors) {
-        if (!neighbor.visited)
-            this.recursiveSearch(neighbor);
-    }
-  }
-
   public search(source: P, destination: P) {
     const toVisitLinkedList = new LinkedList<AStarNode<P>>();
     toVisitLinkedList.add(this.graph.get(source));
