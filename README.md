@@ -3,6 +3,7 @@
 A 3D visualization tool used to render different pathfinding algorithms
 
 ## Currently supported pathfinding algorithms
+- Depth first search
 - A\*
 - Dijkstra
 - Jump point search

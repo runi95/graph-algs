@@ -13,10 +13,12 @@ import {ChebyshevDistance} from '../heuristics/chebyshevDistance';
 import {asyncHandler} from './asyncHandler';
 import {NoValidPathError} from '../algorithms/noValidPathError';
 import {Point3D} from '../algorithms/point3d';
+import {DepthFirstSearch} from '../algorithms/DFS';
 
 export const router = Router();
 
 const algorithms = [
+  DepthFirstSearch,
   AStar,
   Dijkstra,
   // JPS,
