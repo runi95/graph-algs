@@ -91,6 +91,7 @@ export class AStar<P extends Point> {
     const openHeap = new PriorityQueue<AStarNode<P>>();
     openHeap.add(this.graph.get(source));
   
+    const visited: number[][] = [];
     const destinationNode = this.graph.get(destination);
     while (openHeap.size > 0) {
       const currentNode = openHeap.poll() as AStarNode<P>;
@@ -103,12 +104,7 @@ export class AStar<P extends Point> {
           curr = curr.parent;
         }
 
-        const visitedFilter = 
-          (node: AStarNode<P>) => node.visited && node !== currentNode;
-        const visited = this.graph.nodes
-          .filter(visitedFilter)
-          .map(n => n.point.coords);
-        return {solution: ret.reverse(), visited: visited};
+        return {solution: ret.reverse(), visited};
       }
 
       currentNode.closed = true;
@@ -124,6 +120,7 @@ export class AStar<P extends Point> {
         const gScore = currentNode.g + 1;
         const beenVisited = neighbor.visited;
         if (!beenVisited || gScore < neighbor.g) {
+          visited.push(neighbor.point.coords);
           neighbor.visited = true;
           neighbor.parent = currentNode;
           neighbor.h = neighbor.h || heuristic.calculate(
@@ -143,9 +140,6 @@ export class AStar<P extends Point> {
       }
     }
 
-    const visited = this.graph.nodes
-      .filter((node: AStarNode<P>) => node.visited)
-      .map(n => n.point.coords);
     throw new NoValidPathError(visited);
   }
 }

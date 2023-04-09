@@ -211,6 +211,7 @@ export class JPS<P extends Point> {
     const openHeap = new PriorityQueue<AStarNode<P>>();
     openHeap.add(this.graph.get(source));
 
+    const visited: number[][] = [];
     const destinationNode = this.graph.get(destination);
     while (openHeap.size > 0) {
       const currentNode = openHeap.poll() as AStarNode<P>;
@@ -225,12 +226,6 @@ export class JPS<P extends Point> {
         }
 
         path.push(source.coords);
-
-        const visitedFilter = 
-          (node: AStarNode<P>) => node.visited && node !== currentNode;
-        const visited = this.graph.nodes
-          .filter(visitedFilter)
-          .map((n) => n.point.coords);
 
         const solution = path
           .reduce((acc: number[][], curr: number[], currentIndex: number) => {
@@ -293,6 +288,7 @@ export class JPS<P extends Point> {
           const gScore = currentNode.g + d;
           const beenVisited = neighbor.visited;
           if (!beenVisited || gScore < jumpNode.g) {
+            visited.push(jumpNode.point.coords);
             jumpNode.visited = true;
             jumpNode.parent = currentNode;
             jumpNode.h = neighbor.h || heuristic.calculate(
@@ -313,9 +309,6 @@ export class JPS<P extends Point> {
       }
     }
 
-    const visited = this.graph.nodes
-      .filter((node: AStarNode<P>) => node.visited)
-      .map(n => n.point.coords);
     throw new NoValidPathError(visited);
   }
 }

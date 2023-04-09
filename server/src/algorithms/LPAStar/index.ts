@@ -143,9 +143,14 @@ export class LPAStar<P extends Point> {
       }
     };
 
+    const visited: number[][] = [];
+
     // ComputeShortestPath
     while (openHeap.size > 0) {
       const u = openHeap.poll() as LPAStarNode<P>;
+      if (u !== startNode && u !== destinationNode) {
+        visited.push(u.point.coords);
+      }
       u.visited = true;
 
       destinationNode.key = this.calculateKey(
@@ -202,19 +207,9 @@ export class LPAStar<P extends Point> {
         curr = curr.parent;
       }
 
-      const visitedFilter = (node: LPAStarNode<P>) =>
-        node.visited &&
-        node !== startNode &&
-        node !== destinationNode;
-      const visited = this.graph.nodes
-        .filter(visitedFilter)
-        .map((n) => (n.point.coords));
-      return {solution: ret.reverse(), visited: visited};
+      return {solution: ret.reverse(), visited};
     }
 
-    const visited = this.graph.nodes
-      .filter((node: LPAStarNode<P>) => node.visited && node !== startNode)
-      .map(n => n.point.coords);
     throw new NoValidPathError(visited);
   }
 }
