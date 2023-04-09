@@ -120,7 +120,9 @@ export class AStar<P extends Point> {
         const gScore = currentNode.g + 1;
         const beenVisited = neighbor.visited;
         if (!beenVisited || gScore < neighbor.g) {
-          visited.push(neighbor.point.coords);
+          if (neighbor !== destinationNode) {
+            visited.push(neighbor.point.coords);
+          }
           neighbor.visited = true;
           neighbor.parent = currentNode;
           neighbor.h = neighbor.h || heuristic.calculate(
