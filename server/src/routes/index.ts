@@ -14,11 +14,13 @@ import {asyncHandler} from './asyncHandler';
 import {NoValidPathError} from '../algorithms/noValidPathError';
 import {Point3D} from '../algorithms/point3d';
 import {DepthFirstSearch} from '../algorithms/DFS';
+import {BreathFirstSearch} from '../algorithms/BFS';
 
 export const router = Router();
 
 const algorithms = [
   DepthFirstSearch,
+  BreathFirstSearch,
   AStar,
   Dijkstra,
   // JPS,
