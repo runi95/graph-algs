@@ -687,7 +687,7 @@ function App() {
               }
 
               instancedMesh.geometry.attributes.color.needsUpdate = true;
-            }, 100);
+            }, 1);
           }}>
             <StopwatchButton />
           </div>
