@@ -90,7 +90,7 @@ export class LPAStar<P extends Point> {
   ) {
     const h = heuristic.calculate(node.point, destination.point);
     return [
-      Math.min(node.g, node.rhs + h),
+      Math.min(node.g, node.rhs) + h,
       Math.min(node.g, node.rhs),
     ];
   }
