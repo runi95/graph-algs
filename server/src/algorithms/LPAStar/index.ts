@@ -35,14 +35,14 @@ export class LPAStar<P extends Point> {
             if (i === di) continue;
             if (node.point.coords[i] > 0) {
               const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
-              if (!n.isWall && !n.visited) {
+              if (!n.isWall) {
                 ret.push(n);
               }
             }
 
             if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
               const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
-              if (!n.isWall && !n.visited) {
+              if (!n.isWall) {
                 ret.push(n);
               }
             }
@@ -52,9 +52,9 @@ export class LPAStar<P extends Point> {
             node.point.coords[di] + d[di] < this.graph.dimensions[di] &&
             node.point.coords[di] + d[di] >= 0
           ) {
-            const n =
+            const n = 
               this.graph.nodes[pointRef + (d[di] * this.graph.dMul[di])];
-            if (!n.isWall && !n.visited) {
+            if (!n.isWall) {
               ret.push(n);
             }
           }
@@ -66,14 +66,14 @@ export class LPAStar<P extends Point> {
       for (let i = 0; i < this.graph.dimensions.length; i++) {
         if (node.point.coords[i] + 1 < this.graph.dimensions[i]) {
           const n = this.graph.nodes[pointRef + this.graph.dMul[i]];
-          if (!n.isWall && !n.visited) {
+          if (!n.isWall) {
             ret.push(n);
           }
         }
 
         if (node.point.coords[i] > 0) {
           const n = this.graph.nodes[pointRef - this.graph.dMul[i]];
-          if (!n.isWall && !n.visited) {
+          if (!n.isWall) {
             ret.push(n);
           }
         }
