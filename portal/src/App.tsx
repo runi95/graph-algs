@@ -305,7 +305,7 @@ function App() {
           fov: 45,
           near: 0.1,
           far: 1000,
-          position: [0, 0, -1.25 * graph.matrixScale]
+          position: [0, 0, -1.25 * initialMatrixScale]
         }}
         className='canvas'
         shadows
