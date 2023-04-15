@@ -78,7 +78,6 @@ function App() {
     debounce((options, graph, instancedMesh) => {
       search(options, graph, instancedMesh);
     }, 500), []);
-  const canvasRef = useRef<HTMLCanvasElement>(null!);
   const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
   const [instancedMesh, setInstancedMesh] = useState<InstancedMesh>(null!);
   const instancedMeshRef = useCallback((instancedMesh: InstancedMesh) => {
@@ -302,7 +301,6 @@ function App() {
           left: 0,
           outline: 'none'
         }}
-        ref={canvasRef}
         camera={{
           fov: 45,
           near: 0.1,
