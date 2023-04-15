@@ -50,7 +50,14 @@ export class DepthFirstSearch<P extends Point> {
         if (next.visited) continue;
         const i = this.graph.point2Index(next.point);
         if (i === destinationIndex) {
-            return {solution: visited, visited};
+            let curr = next.parent as AStarNode<P>;
+            const ret = [];
+            while (curr.parent) {
+              ret.push(curr.point.coords);
+              curr = curr.parent;
+            }
+
+            return {solution: ret.reverse(), visited};
         }
         if (i !== sourceIndex) {
             visited.push(next.point.coords);
@@ -60,6 +67,7 @@ export class DepthFirstSearch<P extends Point> {
         const neighbors = this.neighbors(next);
         for (const neighbor of neighbors) {
             if (neighbor.visited || neighbor.closed) continue;
+            neighbor.parent = next;
             toVisitLinkedList.addFirst(neighbor);
         }
     }
