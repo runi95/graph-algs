@@ -15,6 +15,7 @@ import {NoValidPathError} from '../algorithms/noValidPathError';
 import {Point3D} from '../algorithms/point3d';
 import {DepthFirstSearch} from '../algorithms/DFS';
 import {BreathFirstSearch} from '../algorithms/BFS';
+import {DStarLite} from '../algorithms/DStarLite';
 
 export const router = Router();
 
@@ -23,6 +24,7 @@ const algorithms = [
   BreathFirstSearch,
   Dijkstra,
   AStar,
+  DStarLite,
   // JPS,
   LPAStar
 ];
