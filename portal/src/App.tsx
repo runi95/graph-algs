@@ -75,8 +75,8 @@ const graphHistoryLinkedList =
 
 function App() {
   const debouncedSearch = useMemo(() =>
-    debounce((options, graph, instancedMesh) => {
-      search(options, graph, instancedMesh);
+    debounce((options, graph, instancedMesh, replayState) => {
+      search(options, graph, instancedMesh, replayState);
     }, 500), []);
   const orbitControlsRef = useRef<threelib.OrbitControls>(null!);
   const [instancedMesh, setInstancedMesh] = useState<InstancedMesh>(null!);
@@ -84,6 +84,7 @@ function App() {
     setInstancedMesh(instancedMesh);
   }, []);
   const [editState, setEditState] = useState(true);
+  const [replayState, setReplayState] = useState(true);
   const [stackState, setStackState] = useState(StackButtonState.SINGLE);
   const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
   const [
@@ -101,12 +102,14 @@ function App() {
     visited: number[][];
     visitedIndex: number;
     interval: NodeJS.Timer;
+    isActive: boolean;
   } = useMemo(() => ({
     visited: [],
     visitedIndex: 0,
     solution: [],
     solutionIndex: 0,
-    interval: null!
+    interval: null!,
+    isActive: true
   }), []);
   const colorArray = useMemo(() => Float32Array.from(
     new Array(graph.matrixSize)
@@ -122,7 +125,7 @@ function App() {
   useEffect(() => {
     if (options === null) return;
     if (options.algorithm && options.heuristic) {
-      search(options, graph, instancedMesh);
+      search(options, graph, instancedMesh, replayState);
     } else {
       // Reset visited and solution states
       graph.matrix.forEach((node: NodeTypes, key: number) => {
@@ -131,7 +134,7 @@ function App() {
         }
       });
     }
-  }, [options]);
+  }, [options, replayState]);
 
   // Only runs once!
   useEffect(() => {
@@ -196,7 +199,8 @@ function App() {
   function search(
     options: Options,
     graph: Graph,
-    instancedMesh: InstancedMesh
+    instancedMesh: InstancedMesh,
+    replayState: boolean
   ) {
     if (options.algorithm.value === 'none') return;
 
@@ -226,6 +230,12 @@ function App() {
         replay.solution = solution;
         replay.visited = visited;
 
+        if (replayState) {
+          clearInterval(replay.interval);
+          replay.solutionIndex = 0;
+          replay.visitedIndex = 0;
+        }
+
         // Reset visited and solution states
         graph.matrix.forEach((node: NodeTypes, key: number) => {
           if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
@@ -247,8 +257,14 @@ function App() {
           );
         });
 
-        updateGraph(instancedMesh);
-        graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
+        if (replayState) {
+          replayGraph(instancedMesh);
+        } else {
+          updateGraph(instancedMesh);
+          instancedMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        // graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
       })
       .catch((err) => { console.error(err); });
   }
@@ -290,6 +306,49 @@ function App() {
       }
       updateGraph(instancedMesh);
     }
+  };
+
+  const replayGraph = (instancedMesh: InstancedMesh) => {
+    // Reset visited and solution states
+    graph.matrix.forEach((node: NodeTypes, key: number) => {
+      if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
+        graph.matrix.delete(key);
+      }
+    });
+
+    updateGraph(instancedMesh);
+
+    replay.interval = setInterval(() => {
+      const v = replay.visited[replay.visitedIndex++];
+      if (v !== undefined) {
+        const graphIndex = v[0] +
+          graph.matrixScale * v[1] +
+          graph.matrixScalePow * v[2];
+        graph.matrix.set(graphIndex, NodeTypes.VISITED);
+        const colorIndex = graphIndex * 4;
+        tempColor.set(
+          typeToColorCode(NodeTypes.VISITED)
+        ).toArray(colorArray, colorIndex);
+        colorArray[colorIndex + 3] = selection.transparency;
+      } else {
+        const s = replay.solution[replay.solutionIndex++];
+        if (s !== undefined) {
+          const graphIndex = s[0] +
+            graph.matrixScale * s[1] +
+            graph.matrixScalePow * s[2];
+          graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
+          const colorIndex = graphIndex * 4;
+          tempColor.set(
+            typeToColorCode(NodeTypes.SOLUTION)
+          ).toArray(colorArray, colorIndex);
+          colorArray[colorIndex + 3] = 1;
+        } else {
+          clearInterval(replay.interval);
+        }
+      }
+
+      instancedMesh.geometry.attributes.color.needsUpdate = true;
+    }, 1);
   };
 
   return (
@@ -522,7 +581,7 @@ function App() {
                   graph.matrix.set(i, NodeTypes.EMPTY);
                 }
               });
-              debouncedSearch(options, graph, instancedMesh);
+              debouncedSearch(options, graph, instancedMesh, replayState);
             }
           }}
           onPointerDown={(e) => {
@@ -571,7 +630,7 @@ function App() {
               }
             });
             instancedMesh.geometry.attributes.color.needsUpdate = true;
-            debouncedSearch(options, graph, instancedMesh);
+            debouncedSearch(options, graph, instancedMesh, replayState);
           }}
         >
           <planeGeometry args={[graph.matrixScale, graph.matrixScale]} />
@@ -642,52 +701,40 @@ function App() {
             <StackButton stackState={stackState} />
           </div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            clearInterval(replay.interval);
-            replay.solutionIndex = 0;
-            replay.visitedIndex = 0;
+            if (replayState) {
+              clearInterval(replay.interval);
+              replay.solutionIndex = 0;
+              replay.visitedIndex = 0;
 
-            // Reset visited and solution states
-            graph.matrix.forEach((node: NodeTypes, key: number) => {
-              if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
-                graph.matrix.delete(key);
-              }
-            });
-
-            updateGraph(instancedMesh);
-
-            replay.interval = setInterval(() => {
-              const v = replay.visited[replay.visitedIndex++];
-              if (v !== undefined) {
-                const graphIndex = v[0] +
-                  graph.matrixScale * v[1] +
-                  graph.matrixScalePow * v[2];
-                graph.matrix.set(graphIndex, NodeTypes.VISITED);
-                const colorIndex = graphIndex * 4;
-                tempColor.set(
-                  typeToColorCode(NodeTypes.VISITED)
-                ).toArray(colorArray, colorIndex);
-                colorArray[colorIndex + 3] = selection.transparency;
-              } else {
-                const s = replay.solution[replay.solutionIndex++];
-                if (s !== undefined) {
-                  const graphIndex = s[0] +
-                    graph.matrixScale * s[1] +
-                    graph.matrixScalePow * s[2];
-                  graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
-                  const colorIndex = graphIndex * 4;
-                  tempColor.set(
-                    typeToColorCode(NodeTypes.SOLUTION)
-                  ).toArray(colorArray, colorIndex);
-                  colorArray[colorIndex + 3] = 1;
-                } else {
-                  clearInterval(replay.interval);
+              // Reset visited and solution states
+              graph.matrix.forEach((node: NodeTypes, key: number) => {
+                if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
+                  graph.matrix.delete(key);
                 }
+              });
+
+              for (const v of replay.visited) {
+                const graphIndex = v[0] +
+                    graph.matrixScale * v[1] +
+                    graph.matrixScalePow * v[2];
+                graph.matrix.set(graphIndex, NodeTypes.VISITED);
               }
 
-              instancedMesh.geometry.attributes.color.needsUpdate = true;
-            }, 1);
+              for (const s of replay.solution) {
+                const graphIndex = s[0] +
+                      graph.matrixScale * s[1] +
+                      graph.matrixScalePow * s[2];
+                graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
+              }
+
+              updateGraph(instancedMesh);
+            } else {
+              replayGraph(instancedMesh);
+            }
+
+            setReplayState(!replayState);
           }}>
-            <StopwatchButton />
+            <StopwatchButton isActive={replayState} />
           </div>
         </div>
         <div>
@@ -736,6 +783,7 @@ function App() {
         heuristic={options?.heuristic}
         templates={options?.templates}
         setTemplate={(template: string) => {
+          clearInterval(replay.interval);
           fetch(`http://localhost:8080/templates/${template}.json`, {
             method: 'GET'
           })
@@ -765,7 +813,7 @@ function App() {
                 NodeTypes.GOAL
               );
 
-              debouncedSearch(options, graph, instancedMesh);
+              debouncedSearch(options, graph, instancedMesh, replayState);
             })
             .catch((err) => { console.error(err); });
         }}
