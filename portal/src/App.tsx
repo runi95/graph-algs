@@ -62,6 +62,7 @@ const typeToColorCode = (type: NodeTypes) => {
 
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
+const initialTransparency = 1;
 const initialMatrixScale = 32;
 const floors = 10;
 const initialStart = new Vector3(1, 1, Math.min(floors - 1, 2));
@@ -119,7 +120,7 @@ function App() {
   const selection = useMemo(() => ({
     positions: new Map<number, Vector3>(),
     activeState: false,
-    transparency: 0.6
+    transparency: initialTransparency
   }), []);
 
   useEffect(() => {
@@ -664,7 +665,7 @@ function App() {
       </Canvas>
       <div className='information-panel'>
         <div>
-          <input type="range" min="11" max="100" onChange={(e) => {
+          <input type="range" min="11" max="100" defaultValue={100 * initialTransparency} onChange={(e) => {
             selection.transparency = Number(e.target.value) / 100;
             updateGraph(instancedMesh);
           }} />
