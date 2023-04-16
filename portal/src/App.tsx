@@ -63,7 +63,7 @@ const typeToColorCode = (type: NodeTypes) => {
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
 const initialMatrixScale = 32;
-const floors = 32;
+const floors = 10;
 const initialStart = new Vector3(1, 1, Math.min(floors - 1, 2));
 const initialGoal = new Vector3(
   initialMatrixScale - 2,
