@@ -394,8 +394,8 @@ function App() {
         }}
         camera={{
           fov: 45,
-          near: 0.1,
-          far: 1000,
+          near: 1,
+          far: 750,
           position: [0, 0, -1.25 * initialMatrixScale]
         }}
         className='canvas'
