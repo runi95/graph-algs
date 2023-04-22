@@ -23,6 +23,13 @@ export class HistoryLinkedList<T> {
     return this.current?.item ?? null;
   }
 
+  canUndo(): boolean {
+    const c = this.current;
+    if (c === null) return false;
+    if (c.prev === null) return false;
+    return c.prev.item !== null;
+  }
+
   undo() {
     const c = this.current;
     if (c === null) {
@@ -36,6 +43,13 @@ export class HistoryLinkedList<T> {
     this.current = this.current?.prev ?? null;
 
     return c.prev.item;
+  }
+
+  canRedo(): boolean {
+    const c = this.current;
+    if (c === null) return false;
+    if (c.next === null) return false;
+    return c.next.item !== null;
   }
 
   redo() {

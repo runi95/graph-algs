@@ -86,6 +86,10 @@ function App() {
   }, []);
   const [editState, setEditState] = useState(true);
   const [replayState, setReplayState] = useState(true);
+  const [undoAndRedoState, setUndoAndRedoState] = useState({
+    isUndoActive: false,
+    isRedoActive: false
+  });
   const [stackState, setStackState] = useState(StackButtonState.SINGLE);
   const [currentFloorLevel, setCurrentFloorLevel] = useState(1);
   const [
@@ -265,7 +269,11 @@ function App() {
           instancedMesh.instanceMatrix.needsUpdate = true;
         }
 
-        // graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
+        graphHistoryLinkedList.add(Array.from(graph.matrix.entries()));
+        setUndoAndRedoState({
+          isUndoActive: graphHistoryLinkedList.canUndo(),
+          isRedoActive: graphHistoryLinkedList.canRedo()
+        });
       })
       .catch((err) => { console.error(err); });
   }
@@ -289,23 +297,46 @@ function App() {
 
   const undo = () => {
     const prev = graphHistoryLinkedList.undo();
+    setUndoAndRedoState({
+      isUndoActive: graphHistoryLinkedList.canUndo(),
+      isRedoActive: graphHistoryLinkedList.canRedo()
+    });
     if (prev !== null) {
+      console.log(replay);
+      clearInterval(replay.interval);
+      replay.solutionIndex = 0;
+      replay.visitedIndex = 0;
       graph.matrix.clear();
       for (const entry of prev) {
         graph.matrix.set(entry[0], entry[1]);
       }
-      updateGraph(instancedMesh);
+      if (replayState) {
+        replayGraph(instancedMesh);
+      } else {
+        updateGraph(instancedMesh);
+      }
     }
   };
 
   const redo = () => {
     const next = graphHistoryLinkedList.redo();
+    setUndoAndRedoState({
+      isUndoActive: graphHistoryLinkedList.canUndo(),
+      isRedoActive: graphHistoryLinkedList.canRedo()
+    });
     if (next !== null) {
+      clearInterval(replay.interval);
+      replay.solutionIndex = 0;
+      replay.visitedIndex = 0;
       graph.matrix.clear();
       for (const entry of next) {
         graph.matrix.set(entry[0], entry[1]);
       }
-      updateGraph(instancedMesh);
+      if (replayState) {
+        replayGraph(instancedMesh);
+      } else {
+        updateGraph(instancedMesh);
+      }
     }
   };
 
@@ -670,15 +701,15 @@ function App() {
             updateGraph(instancedMesh);
           }} />
         </div>
-        <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+        <div style={{height: 24, width: 24, cursor: undoAndRedoState.isUndoActive ? 'pointer' : 'default'}} onClick={() => {
           undo();
         }}>
-          <UndoButton />
+          <UndoButton isActive={undoAndRedoState.isUndoActive} />
         </div>
-        <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
+        <div style={{height: 24, width: 24, cursor: undoAndRedoState.isRedoActive ? 'pointer' : 'default'}} onClick={() => {
           redo();
         }}>
-          <RedoButton />
+          <RedoButton isActive={undoAndRedoState.isRedoActive} />
         </div>
         <div>
           <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
