@@ -17,7 +17,6 @@ export class DStarLite<P extends Point> {
     );
   }
 
-  // Verified
   private calculateKey(
     s: DStarLiteNode<P>,
     start: DStarLiteNode<P>,
@@ -30,7 +29,6 @@ export class DStarLite<P extends Point> {
     ];
   }
 
-  // Verified
   private c(
     u: DStarLiteNode<P>,
     v: DStarLiteNode<P>,
@@ -100,7 +98,6 @@ export class DStarLite<P extends Point> {
     const openHeap = new PriorityQueue<DStarLiteNode<P>>(compareKey);
     openHeap.add(destinationNode);
 
-    // Verified
     const updateVertex = (u: DStarLiteNode<P>) => {
         openHeap.remove(u);
 
