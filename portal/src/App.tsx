@@ -43,23 +43,6 @@ interface RunResponse {
   executionTime: number;
 }
 
-const typeToColorCode = (type: NodeTypes) => {
-  switch (type) {
-    case NodeTypes.START:
-      return '#afa';
-    case NodeTypes.GOAL:
-      return '#aaf';
-    case NodeTypes.SOLUTION:
-      return '#49f';
-    case NodeTypes.VISITED:
-      return '#324c75';
-    case NodeTypes.WALL:
-    case NodeTypes.EMPTY:
-    default:
-      return '#aaa';
-  }
-};
-
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
 const initialTransparency = 1;
@@ -124,8 +107,26 @@ function App() {
   const selection = useMemo(() => ({
     positions: new Map<number, Vector3>(),
     activeState: false,
-    transparency: initialTransparency
+    transparency: initialTransparency,
+    wallColor: '#aaa'
   }), []);
+
+  const typeToColorCode = (type: NodeTypes) => {
+    switch (type) {
+      case NodeTypes.START:
+        return '#afa';
+      case NodeTypes.GOAL:
+        return '#aaf';
+      case NodeTypes.SOLUTION:
+        return '#49f';
+      case NodeTypes.VISITED:
+        return '#324c75';
+      case NodeTypes.WALL:
+      case NodeTypes.EMPTY:
+      default:
+        return selection.wallColor;
+    }
+  };
 
   useEffect(() => {
     if (options === null) return;
@@ -697,6 +698,9 @@ function App() {
         <div>
           <input type="range" min="11" max="100" defaultValue={100 * initialTransparency} onChange={(e) => {
             selection.transparency = Number(e.target.value) / 100;
+            selection.wallColor = `#${(
+              Math.round(Math.sqrt(Math.pow(170, 2) * selection.transparency))
+            ).toString(16).repeat(3)}`;
             updateGraph(instancedMesh);
           }} />
         </div>
