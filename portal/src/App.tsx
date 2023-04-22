@@ -399,7 +399,6 @@ function App() {
           position: [0, 0, -1.25 * initialMatrixScale]
         }}
         className='canvas'
-        shadows
         onPointerDown={(e) => {
           if (e.buttons !== 4) return;
           orbitControlsRef.current.reset();
