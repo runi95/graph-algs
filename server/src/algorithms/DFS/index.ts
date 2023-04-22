@@ -64,8 +64,7 @@ export class DepthFirstSearch<P extends Point> {
         }
         next.visited = true;
         next.closed = true;
-        const neighbors = this.neighbors(next);
-        for (const neighbor of neighbors) {
+        for (const neighbor of this.neighbors(next)) {
             if (neighbor.visited || neighbor.closed) continue;
             neighbor.parent = next;
             toVisitLinkedList.addFirst(neighbor);

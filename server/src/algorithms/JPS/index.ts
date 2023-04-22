@@ -266,9 +266,7 @@ export class JPS<P extends Point> {
         return {solution, visited};
       }
 
-      const neighbors = this.neighbors(currentNode);
-      for (let i = 0; i < neighbors.length; i++) {
-        const neighbor = neighbors[i];
+      for (const neighbor of this.neighbors(currentNode)) {
         const jumpPoint = this.jump(
           neighbor.point,
           currentNode,

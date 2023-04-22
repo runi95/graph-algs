@@ -166,18 +166,18 @@ export class LPAStar<P extends Point> {
 
       if (u.g > u.rhs) {
         u.g = u.rhs;
-        this.neighbors(u).forEach((neighbor) => {
+        for (const neighbor of this.neighbors(u)) {
           if (neighbor.rhs > u.g + 1) {
             neighbor.parent = u;
             neighbor.rhs = u.g + 1;
           }
 
           updateVertex(neighbor);
-        });
+        }
       } else {
         u.g = Number.POSITIVE_INFINITY;
 
-        this.neighbors(u).forEach((neighbor) => {
+        for (const neighbor of this.neighbors(u)) {
           if (neighbor !== startNode) {
             let nrhs = Number.POSITIVE_INFINITY;
             let nparent = null;
@@ -194,7 +194,7 @@ export class LPAStar<P extends Point> {
           }
 
           updateVertex(neighbor);
-        });
+        }
         updateVertex(u);
       }
     }

@@ -109,10 +109,7 @@ export class AStar<P extends Point> {
 
       currentNode.closed = true;
 
-      const neighbors = this.neighbors(currentNode);
-      for (let i = 0; i < neighbors.length; i++) {
-        const neighbor = neighbors[i];
-
+      for (const neighbor of this.neighbors(currentNode)) {
         if (neighbor.closed || neighbor.isWall) {
           continue;
         }
