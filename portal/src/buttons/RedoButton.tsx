@@ -1,4 +1,4 @@
-function UndoButton(props: {isActive: boolean}) {
+function RedoButton(props: {isActive: boolean}) {
   return (
     <svg color='#555' transform='scale(1, -1)' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' viewBox='0 0 512 512' xmlSpace='preserve'>
       <g color={props.isActive ? '#48c' : '#555'}>
@@ -8,4 +8,4 @@ function UndoButton(props: {isActive: boolean}) {
   );
 }
 
-export default UndoButton;
+export default RedoButton;
