@@ -1,7 +1,7 @@
-import FullSquareStackButton from './buttons/FullSquareStackButton';
-import HorizontalStackButton from './buttons/HorizontalStackButton';
-import SingleStackButton from './buttons/SingleStackButton';
-import VerticalStackButton from './buttons/VerticalStackButton';
+import FullSquareStackButton from './FullSquareStackButton';
+import HorizontalStackButton from './HorizontalStackButton';
+import SingleStackButton from './SingleStackButton';
+import VerticalStackButton from './VerticalStackButton';
 
 export enum StackButtonState {
   SINGLE,

@@ -1,6 +1,6 @@
-import RadioButton from './RadioButton';
+import RadioButton from '../../buttons/RadioButton/RadioButton';
 import './ControlPanel.css';
-import Button from './Button';
+import Button from '../../buttons/Button/Button';
 
 interface ControlPanelProps {
   isHidden: boolean;

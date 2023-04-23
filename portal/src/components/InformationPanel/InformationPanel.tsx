@@ -1,15 +1,15 @@
 import {type Vector3, type BufferGeometry, type InstancedMesh, type Material} from 'three';
-import StackButton, {StackButtonState} from './StackButton';
-import CameraButton from './buttons/CameraButton';
-import DownButton from './buttons/DownButton';
-import GearButton from './buttons/GearButton';
-import RedoButton from './buttons/RedoButton';
-import StopwatchButton from './buttons/StopwatchButton';
-import UndoButton from './buttons/UndoButton';
-import UpButton from './buttons/UpButton';
-import {NodeTypes} from './utils/NodeTypes';
-import {type Graph} from './utils/Graph';
-import {type HistoryLinkedList} from './utils/HistoryLinkedList';
+import StackButton, {StackButtonState} from '../../buttons/StackButton';
+import CameraButton from '../../buttons/CameraButton';
+import DownButton from '../../buttons/DownButton';
+import GearButton from '../../buttons/GearButton';
+import RedoButton from '../../buttons/RedoButton';
+import StopwatchButton from '../../buttons/StopwatchButton';
+import UndoButton from '../../buttons/UndoButton';
+import UpButton from '../../buttons/UpButton';
+import {NodeTypes} from '../../utils/NodeTypes';
+import {type Graph} from '../../utils/Graph';
+import {type HistoryLinkedList} from '../../utils/HistoryLinkedList';
 import './InformationPanel.css';
 
 interface InformationPanelProps {

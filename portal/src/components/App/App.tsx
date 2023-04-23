@@ -4,13 +4,13 @@ import {Canvas} from '@react-three/fiber';
 import {type InstancedMesh, Vector3, Color, Matrix4, NotEqualDepth, DoubleSide} from 'three';
 import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
-import ControlPanel from './ControlPanel';
+import ControlPanel from '../ControlPanel/ControlPanel';
 import './App.css';
-import {HistoryLinkedList} from './utils/HistoryLinkedList';
-import {NodeTypes} from './utils/NodeTypes';
-import {Graph} from './utils/Graph';
-import {StackButtonState} from './StackButton';
-import InformationPanel from './InformationPanel';
+import {HistoryLinkedList} from '../../utils/HistoryLinkedList';
+import {NodeTypes} from '../../utils/NodeTypes';
+import {Graph} from '../../utils/Graph';
+import {StackButtonState} from '../../buttons/StackButton';
+import InformationPanel from '../InformationPanel/InformationPanel';
 
 interface Algorithm {
   label: string;
