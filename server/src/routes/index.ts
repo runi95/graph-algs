@@ -16,6 +16,7 @@ import {Point3D} from '../algorithms/point3d';
 import {DepthFirstSearch} from '../algorithms/DFS';
 import {BreathFirstSearch} from '../algorithms/BFS';
 import {DStarLite} from '../algorithms/DStarLite';
+import {ThetaStar} from '../algorithms/ThetaStar';
 
 export const router = Router();
 
@@ -26,7 +27,8 @@ const algorithms = [
   AStar,
   DStarLite,
   // JPS,
-  LPAStar
+  LPAStar,
+  ThetaStar
 ];
 const heuristics = [
   ManhattanDistance,
