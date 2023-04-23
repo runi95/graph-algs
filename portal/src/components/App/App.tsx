@@ -24,8 +24,6 @@ const initialGoal = new Vector3(
   initialMatrixScale - 2,
   Math.min(floors - 1, 8)
 );
-const graphHistoryLinkedList =
-  new HistoryLinkedList<Array<[number, NodeTypes]>>();
 
 function App() {
   const debouncedSearch = useMemo(() =>
@@ -38,6 +36,10 @@ function App() {
     setInstancedMesh(instancedMesh);
   }, []);
   const [editState, setEditState] = useState(true);
+  const graphHistoryLinkedList = useMemo(
+    () => new HistoryLinkedList<Array<[number, NodeTypes]>>(),
+    []
+  );
   const [replayState, setReplayState] = useState(true);
   const [undoAndRedoState, setUndoAndRedoState] = useState({
     isUndoActive: false,
