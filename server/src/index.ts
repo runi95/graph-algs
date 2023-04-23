@@ -4,7 +4,7 @@ import * as morgan from 'morgan';
 import * as express from 'express';
 import * as cors from 'cors';
 import * as winston from 'winston';
-import {port, logLevel, templatesDir} from './config/config';
+import {port, logLevel} from './config/config';
 import {router as routes} from './routes';
 
 const logger = winston.createLogger({
@@ -43,7 +43,6 @@ app.use(
 
 // Routes
 app.use('/api', routes);
-app.use('/templates', express.static(templatesDir));
 
 // Error middlewares
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

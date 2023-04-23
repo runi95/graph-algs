@@ -694,7 +694,7 @@ function App() {
         templates={options?.templates}
         setTemplate={(template: string) => {
           clearInterval(replay.interval);
-          fetch(`http://localhost:8080/templates/${template}.json`, {
+          fetch(`http://localhost:8080/api/templates/${template}.json`, {
             method: 'GET'
           })
             .then(async(response) => {

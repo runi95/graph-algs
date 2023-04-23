@@ -1,4 +1,5 @@
 import {Router, Request, Response} from 'express';
+import * as express from 'express';
 import * as fs from 'fs-extra';
 import {templatesDir} from '../config/config';
 import {AStar} from '../algorithms/aStar';
@@ -159,3 +160,5 @@ router.get('/options', asyncHandler(async (_req: Request, res: Response) => {
     templates: templates,
   });
 }));
+
+router.use('/templates', express.static(templatesDir));
