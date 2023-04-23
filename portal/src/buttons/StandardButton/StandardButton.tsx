@@ -1,6 +1,6 @@
-import './Button.css';
+import './StandardButton.css';
 
-function Button(props: {
+function StandardButton(props: {
   onClick: () => void;
   text: string;
 }) {
@@ -9,4 +9,4 @@ function Button(props: {
   );
 };
 
-export default Button;
+export default StandardButton;

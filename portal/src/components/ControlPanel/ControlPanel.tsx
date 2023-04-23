@@ -1,6 +1,6 @@
 import RadioButton from '../../buttons/RadioButton/RadioButton';
 import './ControlPanel.css';
-import Button from '../../buttons/Button/Button';
+import StandardButton from '../../buttons/StandardButton/StandardButton';
 
 interface ControlPanelProps {
   isHidden: boolean;
@@ -26,7 +26,7 @@ function ControlPanel(props: ControlPanelProps) {
           top: 15,
           right: 15
         }}>
-          <Button onClick={() => {
+          <StandardButton onClick={() => {
             props?.onPanelClose();
           }} text='Close' />
         </div>
