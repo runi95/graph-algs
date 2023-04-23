@@ -11,31 +11,7 @@ import {NodeTypes} from '../../utils/NodeTypes';
 import {Graph} from '../../utils/Graph';
 import {StackButtonState} from '../../buttons/StackButton';
 import InformationPanel from '../InformationPanel/InformationPanel';
-
-interface Algorithm {
-  label: string;
-  value: string;
-  usesHeuristics: boolean;
-}
-
-interface Heuristic {
-  label: string;
-  value: string;
-}
-
-interface Options {
-  algorithms: Algorithm[];
-  algorithm: Algorithm;
-  heuristics: Heuristic[];
-  heuristic: Heuristic;
-  templates: string[];
-}
-
-interface RunResponse {
-  solution: number[][];
-  visited: number[][];
-  executionTime: number;
-}
+import {type Heuristic, type Options, type Algorithm, getOptions, runPathfindingAlgorithm, getTemplate} from '../../lib/API';
 
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
@@ -140,10 +116,7 @@ function App() {
   useEffect(() => {
     if (instancedMesh === null) return;
 
-    fetch('http://localhost:8080/api/options').then(async(response) => {
-      if (!response.ok) throw new Error('Network response not OK');
-      return await response.json();
-    }).then((data) => {
+    getOptions().then((data) => {
       setOptions(data);
     }).catch((err) => { console.error(err); });
 
@@ -214,18 +187,8 @@ function App() {
       heuristic: options.heuristic.value
     });
 
-    fetch('http://localhost:8080/api/run', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: data
-    })
-      .then(async(response) => {
-        if (!response.ok) throw new Error('Network response not OK');
-        return await response.json();
-      })
-      .then((data: RunResponse) => {
+    runPathfindingAlgorithm(data)
+      .then((data) => {
         const {solution, visited} = data;
         replay.solution = solution;
         replay.visited = visited;
@@ -694,13 +657,7 @@ function App() {
         templates={options?.templates}
         setTemplate={(template: string) => {
           clearInterval(replay.interval);
-          fetch(`http://localhost:8080/api/templates/${template}.json`, {
-            method: 'GET'
-          })
-            .then(async(response) => {
-              if (!response.ok) throw new Error('Network response not OK');
-              return await response.json();
-            })
+          getTemplate(template)
             .then((data) => {
               graph.matrix.clear();
 
