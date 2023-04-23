@@ -6,17 +6,11 @@ import {OrbitControls} from '@react-three/drei';
 import type * as threelib from 'three-stdlib';
 import ControlPanel from './ControlPanel';
 import './App.css';
-import CameraButton from './buttons/CameraButton';
-import GearButton from './buttons/GearButton';
-import UndoButton from './buttons/UndoButton';
-import RedoButton from './buttons/RedoButton';
 import {HistoryLinkedList} from './utils/HistoryLinkedList';
-import UpButton from './buttons/UpButton';
-import DownButton from './buttons/DownButton';
 import {NodeTypes} from './utils/NodeTypes';
 import {Graph} from './utils/Graph';
-import StackButton, {StackButtonState} from './StackButton';
-import StopwatchButton from './buttons/StopwatchButton';
+import {StackButtonState} from './StackButton';
+import InformationPanel from './InformationPanel';
 
 interface Algorithm {
   label: string;
@@ -304,50 +298,6 @@ function App() {
     }
 
     return key;
-  };
-
-  const undo = () => {
-    const prev = graphHistoryLinkedList.undo();
-    setUndoAndRedoState({
-      isUndoActive: graphHistoryLinkedList.canUndo(),
-      isRedoActive: graphHistoryLinkedList.canRedo()
-    });
-    if (prev !== null) {
-      clearInterval(replay.interval);
-      replay.solutionIndex = 0;
-      replay.visitedIndex = 0;
-      graph.matrix.clear();
-      for (const entry of prev) {
-        graph.matrix.set(entry[0], entry[1]);
-      }
-      if (replayState) {
-        replayGraph(instancedMesh);
-      } else {
-        updateGraph(instancedMesh);
-      }
-    }
-  };
-
-  const redo = () => {
-    const next = graphHistoryLinkedList.redo();
-    setUndoAndRedoState({
-      isUndoActive: graphHistoryLinkedList.canUndo(),
-      isRedoActive: graphHistoryLinkedList.canRedo()
-    });
-    if (next !== null) {
-      clearInterval(replay.interval);
-      replay.solutionIndex = 0;
-      replay.visitedIndex = 0;
-      graph.matrix.clear();
-      for (const entry of next) {
-        graph.matrix.set(entry[0], entry[1]);
-      }
-      if (replayState) {
-        replayGraph(instancedMesh);
-      } else {
-        updateGraph(instancedMesh);
-      }
-    }
   };
 
   const replayGraph = (instancedMesh: InstancedMesh) => {
@@ -703,107 +653,29 @@ function App() {
           enablePan={!editState}
         />
       </Canvas>
-      <div className='information-panel'>
-        <div>
-          <input type="range" min="11" max="100" defaultValue={100 * initialTransparency} onChange={(e) => {
-            selection.transparency = Number(e.target.value) / 100;
-            selection.wallColor = `#${(
-              Math.round(Math.sqrt(Math.pow(170, 2) * selection.transparency))
-            ).toString(16).repeat(3)}`;
-            updateGraph(instancedMesh);
-          }} />
-        </div>
-        <div style={{height: 24, width: 24, cursor: undoAndRedoState.isUndoActive ? 'pointer' : 'default'}} onClick={() => {
-          undo();
-        }}>
-          <UndoButton isActive={undoAndRedoState.isUndoActive} />
-        </div>
-        <div style={{height: 24, width: 24, cursor: undoAndRedoState.isRedoActive ? 'pointer' : 'default'}} onClick={() => {
-          redo();
-        }}>
-          <RedoButton isActive={undoAndRedoState.isRedoActive} />
-        </div>
-        <div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            if (editState) {
-              selection.positions.forEach((_, i) => {
-                updateNode(i, graph.matrix.get(i) ?? NodeTypes.EMPTY);
-              });
-              selection.positions.clear();
-              instancedMesh.geometry.attributes.color.needsUpdate = true;
-            }
-
-            setEditState(!editState);
-          }}>
-            <CameraButton isActive={!editState} />
-          </div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setStackState(
-              (stackState + 1) % (Object.keys(StackButtonState).length / 2)
-            );
-          }}>
-            <StackButton stackState={stackState} />
-          </div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            if (replayState) {
-              clearInterval(replay.interval);
-              replay.solutionIndex = 0;
-              replay.visitedIndex = 0;
-
-              // Reset visited and solution states
-              graph.matrix.forEach((node: NodeTypes, key: number) => {
-                if (node === NodeTypes.VISITED || node === NodeTypes.SOLUTION) {
-                  graph.matrix.delete(key);
-                }
-              });
-
-              for (const v of replay.visited) {
-                const graphIndex = v[0] +
-                    graph.matrixScale * v[1] +
-                    graph.matrixScalePow * v[2];
-                graph.matrix.set(graphIndex, NodeTypes.VISITED);
-              }
-
-              for (const s of replay.solution) {
-                const graphIndex = s[0] +
-                      graph.matrixScale * s[1] +
-                      graph.matrixScalePow * s[2];
-                graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
-              }
-
-              updateGraph(instancedMesh);
-            } else {
-              replayGraph(instancedMesh);
-            }
-
-            setReplayState(!replayState);
-          }}>
-            <StopwatchButton isActive={replayState} />
-          </div>
-        </div>
-        <div>
-          <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-            setControlPanelVisibilityState(true);
-          }}>
-            <GearButton />
-          </div>
-          <div>
-            <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-              setCurrentFloorLevel(Math.min(currentFloorLevel + 1, floors));
-            }}>
-              <UpButton />
-            </div>
-            <div style={{height: 24, width: 24, textAlign: 'center'}}>
-              {currentFloorLevel}
-            </div>
-            <div style={{height: 24, width: 24, cursor: 'pointer'}} onClick={() => {
-              setCurrentFloorLevel(Math.max(currentFloorLevel - 1, 1));
-            }}>
-              <DownButton />
-            </div>
-          </div>
-        </div>
-      </div>
+      <InformationPanel
+        initialTransparency={initialTransparency}
+        undoAndRedoState={undoAndRedoState}
+        editState={editState}
+        setEditState={setEditState}
+        instancedMesh={instancedMesh}
+        currentFloorLevel={currentFloorLevel}
+        floors={floors}
+        selection={selection}
+        updateGraph={updateGraph}
+        setCurrentFloorLevel={setCurrentFloorLevel}
+        setControlPanelVisibilityState={setControlPanelVisibilityState}
+        updateNode={updateNode}
+        setStackState={setStackState}
+        stackState={stackState}
+        graph={graph}
+        replayState={replayState}
+        setReplayState={setReplayState}
+        replay={replay}
+        replayGraph={replayGraph}
+        graphHistoryLinkedList={graphHistoryLinkedList}
+        setUndoAndRedoState={setUndoAndRedoState}
+      />
       <ControlPanel
         onPanelClose={() => {
           setControlPanelVisibilityState(false);

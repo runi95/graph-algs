@@ -1,0 +1,14 @@
+.information-panel {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-evenly;
+    gap: 10px;
+}
+
+.information-panel>div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
