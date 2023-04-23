@@ -250,17 +250,27 @@ function App() {
         });
 
         visited.forEach((p: number[]) => {
-          graph.matrix.set(
-            p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2],
-            NodeTypes.VISITED
-          );
+          const index = p[0] +
+            graph.matrixScale * p[1] +
+            graph.matrixScalePow * p[2];
+          const currentNodeType = graph.matrix.get(index);
+          if (
+            currentNodeType === NodeTypes.START ||
+            currentNodeType === NodeTypes.GOAL
+          ) return;
+          graph.matrix.set(index, NodeTypes.VISITED);
         });
 
         solution.forEach((p: number[]) => {
-          graph.matrix.set(
-            p[0] + graph.matrixScale * p[1] + graph.matrixScalePow * p[2],
-            NodeTypes.SOLUTION
-          );
+          const index = p[0] +
+            graph.matrixScale * p[1] +
+            graph.matrixScalePow * p[2];
+          const currentNodeType = graph.matrix.get(index);
+          if (
+            currentNodeType === NodeTypes.START ||
+            currentNodeType === NodeTypes.GOAL
+          ) return;
+          graph.matrix.set(index, NodeTypes.SOLUTION);
         });
 
         if (replayState) {
