@@ -7,7 +7,7 @@ import type * as threelib from 'three-stdlib';
 import ControlPanel from '../ControlPanel/ControlPanel';
 import './App.css';
 import {HistoryLinkedList} from '../../utils/HistoryLinkedList';
-import {NodeTypes} from '../../utils/NodeTypes';
+import {NodeTypes, nodeTypeToAlpha, nodeTypeToColor} from '../../utils/NodeTypes';
 import {Graph} from '../../utils/Graph';
 import {StackButtonState} from '../../buttons/StackButton';
 import InformationPanel from '../InformationPanel/InformationPanel';
@@ -85,23 +85,6 @@ function App() {
     wallColor: '#aaa'
   }), []);
 
-  const typeToColorCode = (type: NodeTypes) => {
-    switch (type) {
-      case NodeTypes.START:
-        return '#afa';
-      case NodeTypes.GOAL:
-        return '#aaf';
-      case NodeTypes.SOLUTION:
-        return '#49f';
-      case NodeTypes.VISITED:
-        return '#324c75';
-      case NodeTypes.WALL:
-      case NodeTypes.EMPTY:
-      default:
-        return selection.wallColor;
-    }
-  };
-
   useEffect(() => {
     if (options === null) return;
     if (options.algorithm && options.heuristic) {
@@ -140,7 +123,9 @@ function App() {
   const updateGraph = (instancedMesh: InstancedMesh) => {
     for (let i = 0; i < graph.matrixSize; i++) {
       const node = graph.matrix.get(i) ?? NodeTypes.EMPTY;
-      tempColor.set(typeToColorCode(node)).toArray(colorArray, i * 4);
+      tempColor.set(
+        nodeTypeToColor(node, selection.wallColor)
+      ).toArray(colorArray, i * 4);
       switch (node) {
         case NodeTypes.EMPTY:
           colorArray[i * 4 + 3] = 0;
@@ -251,18 +236,13 @@ function App() {
   }
 
   const updateNode = (key: number, newNodeState: NodeTypes) => {
-    tempColor.set(typeToColorCode(newNodeState)).toArray(colorArray, key * 4);
-    switch (newNodeState) {
-      case NodeTypes.EMPTY:
-        colorArray[key * 4 + 3] = 0;
-        break;
-      case NodeTypes.VISITED:
-      case NodeTypes.WALL:
-        colorArray[key * 4 + 3] = selection.transparency;
-        break;
-      default:
-        colorArray[key * 4 + 3] = 1;
-    }
+    tempColor.set(
+      nodeTypeToColor(newNodeState, selection.wallColor)
+    ).toArray(colorArray, key * 4);
+    colorArray[key * 4 + 3] = nodeTypeToAlpha(
+      newNodeState,
+      selection.transparency
+    );
 
     return key;
   };
@@ -286,7 +266,7 @@ function App() {
         graph.matrix.set(graphIndex, NodeTypes.VISITED);
         const colorIndex = graphIndex * 4;
         tempColor.set(
-          typeToColorCode(NodeTypes.VISITED)
+          nodeTypeToColor(NodeTypes.VISITED, selection.wallColor)
         ).toArray(colorArray, colorIndex);
         colorArray[colorIndex + 3] = selection.transparency;
       } else {
@@ -298,7 +278,7 @@ function App() {
           graph.matrix.set(graphIndex, NodeTypes.SOLUTION);
           const colorIndex = graphIndex * 4;
           tempColor.set(
-            typeToColorCode(NodeTypes.SOLUTION)
+            nodeTypeToColor(NodeTypes.SOLUTION, selection.wallColor)
           ).toArray(colorArray, colorIndex);
           colorArray[colorIndex + 3] = 1;
         } else {
