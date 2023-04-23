@@ -313,7 +313,6 @@ function App() {
       isRedoActive: graphHistoryLinkedList.canRedo()
     });
     if (prev !== null) {
-      console.log(replay);
       clearInterval(replay.interval);
       replay.solutionIndex = 0;
       replay.visitedIndex = 0;
