@@ -13,6 +13,15 @@ import {StackButtonState} from '../../buttons/StackButton';
 import InformationPanel from '../InformationPanel/InformationPanel';
 import {type Heuristic, type Options, type Algorithm, getOptions, runPathfindingAlgorithm, getTemplate} from '../../lib/API';
 
+interface Replay {
+  solution: number[][];
+  solutionIndex: number;
+  visited: number[][];
+  visitedIndex: number;
+  interval: NodeJS.Timer;
+  isActive: boolean;
+};
+
 const tempColor = new Color();
 const tempMatrix = new Matrix4();
 const initialTransparency = 1;
@@ -56,14 +65,7 @@ function App() {
     () => new Graph(initialMatrixScale, floors, initialStart, initialGoal),
     []
   );
-  const replay: {
-    solution: number[][];
-    solutionIndex: number;
-    visited: number[][];
-    visitedIndex: number;
-    interval: NodeJS.Timer;
-    isActive: boolean;
-  } = useMemo(() => ({
+  const replay: Replay = useMemo(() => ({
     visited: [],
     visitedIndex: 0,
     solution: [],
