@@ -17,6 +17,7 @@ import {DepthFirstSearch} from '../algorithms/DFS';
 import {BreathFirstSearch} from '../algorithms/BFS';
 import {DStarLite} from '../algorithms/DStarLite';
 import {ThetaStar} from '../algorithms/ThetaStar';
+import {LazyThetaStar} from '../algorithms/LazyThetaStar';
 
 export const router = Router();
 
@@ -28,7 +29,8 @@ const algorithms = [
   DStarLite,
   // JPS,
   LPAStar,
-  ThetaStar
+  ThetaStar,
+  LazyThetaStar
 ];
 const heuristics = [
   ManhattanDistance,
