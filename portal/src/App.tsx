@@ -346,12 +346,6 @@ function App() {
   return (
     <div className='App'>
       <Canvas
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          outline: 'none'
-        }}
         camera={{
           fov: 45,
           near: 1,
