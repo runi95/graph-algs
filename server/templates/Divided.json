@@ -11132,7 +11132,5 @@
     "x": 30,
     "y": 30,
     "z": 8
-  },
-  "algorithm": "astar",
-  "heuristic": "manhattandistance"
+  }
 }
