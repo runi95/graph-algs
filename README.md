@@ -4,10 +4,13 @@ A 3D visualization tool used to render different pathfinding algorithms
 
 ## Currently supported pathfinding algorithms
 - Depth first search
-- A\*
+- Breath first search
 - Dijkstra
-- Jump point search
+- A\*
+- D\* Lite
 - Lifelong Planning A\*
+- Theta\*
+- Lazy Theta\*
 
 ## Currently supported heuristics
 - Manhattan distance
