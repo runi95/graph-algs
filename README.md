@@ -1,6 +1,8 @@
-# Graph Algs
+![Graph Algorithms](/images/Banner.png)
 
-A 3D visualization tool used to render different pathfinding algorithms
+A 3D visualization tool used to render different pathfinding algorithms.
+
+📃 Note: A grid like the one used in this repository is likely not the best way to evaluate pathfinding algorithms for *your* exact use case and should thus only be used as an approximation tool. The 3D grid is mostly for simplicity and visualization purposes.
 
 ## Currently supported pathfinding algorithms
 - Depth first search
@@ -21,6 +23,6 @@ A 3D visualization tool used to render different pathfinding algorithms
 
 ## Preview
 
-![Preview Image](/images/Preview-Image-1.png)
-![Preview Image](/images/Preview-Image-2.png)
-![Preview Image](/images/Preview-Image-3.png)
+![Preview Image 1](/images/Preview-Image-1.png)
+![Preview Image 2](/images/Preview-Image-2.png)
+![Preview Image 3](/images/Preview-Image-3.png)
