@@ -1,5 +1,5 @@
 import {PriorityQueue} from '../priorityQueue';
-import {AStarNode} from '../AStar/node';
+import {DijkstraNode} from './node';
 import {ClientMatrix, Graph} from '../graph';
 import {Point} from '../point';
 import {NoValidPathError} from '../noValidPathError';
@@ -7,16 +7,16 @@ import {NoValidPathError} from '../noValidPathError';
 export class Dijkstra<P extends Point> {
   public static readonly label = 'Dijkstra';
   public static readonly usesHeuristics = false;
-  private readonly graph: Graph<P, AStarNode<P>>;
+  private readonly graph: Graph<P, DijkstraNode<P>>;
 
   constructor(clientMatrix: ClientMatrix<P>) {
     this.graph = new Graph(
       clientMatrix.dimensions,
-      clientMatrix.nodes.map(n => new AStarNode(n))
+      clientMatrix.nodes.map(n => new DijkstraNode(n))
     );
   }
 
-  private neighbors(node: AStarNode<P>): AStarNode<P>[] {
+  private neighbors(node: DijkstraNode<P>): DijkstraNode<P>[] {
     const ret = [];
     const parent = node.parent;
 
@@ -83,16 +83,18 @@ export class Dijkstra<P extends Point> {
   }
 
   public search(source: P, destination: P) {
-    const openHeap = new PriorityQueue<AStarNode<P>>();
-    openHeap.add(this.graph.get(source));
+    const openHeap = new PriorityQueue<DijkstraNode<P>>();
+    const sourceNode = this.graph.get(source);
+    sourceNode.g = 0;
+    openHeap.add(sourceNode);
   
     const visited: number[][] = [];
     const destinationNode = this.graph.get(destination);
     while (openHeap.size > 0) {
-      const currentNode = openHeap.poll() as AStarNode<P>;
+      const currentNode = openHeap.poll() as DijkstraNode<P>;
 
       if (currentNode === destinationNode) {
-        let curr = currentNode.parent as AStarNode<P>;
+        let curr = currentNode.parent as DijkstraNode<P>;
         const ret = [];
         while (curr.parent) {
           ret.push(curr.point.coords);
@@ -117,9 +119,7 @@ export class Dijkstra<P extends Point> {
           }
           neighbor.visited = true;
           neighbor.parent = currentNode;
-          neighbor.h = neighbor.h || 0;
           neighbor.g = gScore;
-          neighbor.f = neighbor.g + neighbor.h;
 
           if (!beenVisited) {
             openHeap.add(neighbor);
