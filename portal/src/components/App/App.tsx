@@ -164,7 +164,14 @@ function App() {
     instancedMesh: InstancedMesh,
     replayState: boolean
   ) {
-    if (options.algorithm.value === 'none') return;
+    if (options.algorithm.value === 'none') {
+      if (replayState) {
+        clearInterval(replay.interval);
+        replay.solutionIndex = 0;
+        replay.visitedIndex = 0;
+      }
+      return;
+    };
 
     const data = JSON.stringify({
       ...graph,
