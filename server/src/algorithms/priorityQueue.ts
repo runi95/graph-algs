@@ -53,7 +53,7 @@ export class PriorityQueue<T> {
       let child = (k << 1) + 1;
       let c = this._queue[child];
       const right = child + 1;
-      if (right < this._size && c > this._queue[right]) {
+      if (right < this._size && this.comparator(c, this._queue[right]) === 1) {
         c = this._queue[child = right];
       }
       if (this.comparator(key, c) <= 0) break;

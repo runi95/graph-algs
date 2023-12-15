@@ -2,7 +2,7 @@ import test from 'ava';
 import {PriorityQueue} from '../src/algorithms/priorityQueue';
 
 const N = 10;
-const shuffle = <T extends {valueOf(): number}>(array: T[]) => {
+const shuffle = <T>(array: T[]) => {
     let currentIndex = array.length; let randomIndex;
 
     while (currentIndex !== 0) {
@@ -81,6 +81,53 @@ test('should output the objects in descending order based on valueOf', t => {
         const shuffled = shuffle([...expected]);
 
         const pq = new PriorityQueue();
+        for (const i in shuffled) {
+            pq.add(shuffled[i]);
+        }
+
+        let next;
+        while ((next = pq.poll()) !== null) {
+            const pop = expected.pop();
+            t.true(pop === next, `expected ${pop} to be equal ${next}`);
+        }
+    }
+});
+
+test('should output the objects in descending order based on custom comparator', t => {
+    const comparator = (a: [number, number], b: [number, number]) => {
+        if (a[0] > b[0]) {
+            return 1;
+        }
+    
+        if (a[0] < b[0]) {
+            return -1;
+        }
+    
+        if (a[1] > b[1]) {
+            return 1;
+        }
+    
+        if (a[1] < b[1]) {
+            return -1;
+        }
+    
+        return 0;
+    };
+
+    const expected: [number, number][] = [
+        [10.16227766016838, 7],
+        [10.055385138137417, 1],
+        [9.3166247903554, 6],
+        [9, 4],
+        [9, 3],
+        [9, 2],
+        [9, 1],
+    ];
+
+    for (let i = 0; i < N; i++) {
+        const shuffled = shuffle([...expected]);
+
+        const pq = new PriorityQueue(comparator);
         for (const i in shuffled) {
             pq.add(shuffled[i]);
         }
